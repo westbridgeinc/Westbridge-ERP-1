@@ -1,0 +1,372 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  FileText,
+  Calculator,
+  Receipt,
+  Users,
+  FileBarChart,
+  Package,
+  Truck,
+  UserCog,
+  DollarSign,
+  BarChart3,
+  Settings,
+  ChevronsLeft,
+  ChevronsRight,
+  LogOut,
+  Keyboard,
+} from "lucide-react";
+import { SITE, ROUTES } from "@/lib/config/site";
+import { useShortcuts } from "@/components/dashboard/ShortcutsContext";
+import { useSidebar } from "@/components/dashboard/SidebarContext";
+import { Tooltip } from "@/components/ui/Tooltip";
+
+/** Placeholder until /api/auth/me or session context provides real user. */
+const PLACEHOLDER_USER = { name: "Admin", email: "admin@acme.gy" };
+
+function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((s) => s[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "?";
+}
+
+function getGradientFromEmail(email: string): string {
+  let h = 0;
+  for (let i = 0; i < email.length; i++) h = ((h << 5) - h + email.charCodeAt(i)) | 0;
+  const hue = Math.abs(h % 360);
+  return `linear-gradient(135deg, hsl(${hue}, 47%, 38%), hsl(${hue}, 47%, 26%))`;
+}
+
+const nav = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Invoices", href: "/dashboard/invoices", icon: FileText },
+  { label: "Accounting", href: "/dashboard/accounting", icon: Calculator },
+  { label: "Expenses", href: "/dashboard/expenses", icon: Receipt },
+  { label: "CRM", href: "/dashboard/crm", icon: Users },
+  { label: "Quotations", href: "/dashboard/quotations", icon: FileBarChart },
+  { label: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { label: "Procurement", href: "/dashboard/procurement", icon: Truck },
+  { label: "HR", href: "/dashboard/hr", icon: UserCog },
+  { label: "Payroll", href: "/dashboard/payroll", icon: DollarSign },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+];
+
+const sections = [
+  { title: "OVERVIEW", items: [nav[0]] },
+  { title: "FINANCE", items: nav.slice(1, 4) },
+  { title: "SALES", items: nav.slice(4, 6) },
+  { title: "OPERATIONS", items: nav.slice(6, 8) },
+  { title: "PEOPLE", items: nav.slice(8, 10) },
+  { title: "REPORTS", items: nav.slice(10, 11) },
+];
+
+const SIDEBAR_WIDTH = 240;
+
+function SidebarProfile({
+  user,
+  isCollapsed,
+  onNavClick,
+}: {
+  user: { name: string; email: string };
+  isCollapsed: boolean;
+  onNavClick?: () => void;
+}) {
+  const router = useRouter();
+  const { openShortcutsModal } = useShortcuts();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [open]);
+
+  async function handleSignOut() {
+    setOpen(false);
+    try {
+      const csrfRes = await fetch("/api/csrf");
+      const csrfData = await csrfRes.json().catch(() => ({}));
+      const token = csrfData?.data?.token ?? csrfData?.token;
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "X-CSRF-Token": token },
+        });
+      }
+    } finally {
+      router.push(ROUTES.login);
+      router.refresh();
+    }
+  }
+
+  const initials = getInitials(user.name);
+  const gradient = getGradientFromEmail(user.email);
+
+  const avatarEl = (
+    <div
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity"
+      style={{ background: gradient }}
+    >
+      {initials}
+    </div>
+  );
+
+  const avatarButton = (
+    <button
+      type="button"
+      onClick={() => setOpen((o) => !o)}
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-90"
+      aria-expanded={open}
+      aria-haspopup="true"
+      aria-label="Account menu"
+    >
+      {avatarEl}
+    </button>
+  );
+
+  const dropdown = open && (
+    <motion.div
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.15 }}
+      className="absolute left-0 bottom-full mb-1 w-56 rounded-lg border border-border bg-card py-1 shadow-lg"
+    >
+      <div className="border-b border-border px-3 py-2">
+        <p className="truncate text-[0.9375rem] font-medium text-foreground">{user.name}</p>
+        <p className="truncate text-xs text-muted-foreground/60">{user.email}</p>
+      </div>
+      <Link
+        href="/dashboard/settings"
+        prefetch={true}
+        onClick={() => { setOpen(false); onNavClick?.(); }}
+        className="flex items-center gap-2 px-3 py-2 text-[0.9375rem] text-muted-foreground transition-colors hover:bg-muted"
+      >
+        <Settings className="h-4 w-4" />
+        Account settings
+      </Link>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); openShortcutsModal(); onNavClick?.(); }}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[0.9375rem] text-muted-foreground transition-colors hover:bg-muted"
+      >
+        <Keyboard className="h-4 w-4" />
+        Keyboard shortcuts
+      </button>
+      <button
+        type="button"
+        onClick={handleSignOut}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[0.9375rem] text-muted-foreground transition-colors hover:bg-muted"
+      >
+        <LogOut className="h-4 w-4" />
+        Sign out
+      </button>
+    </motion.div>
+  );
+
+  if (isCollapsed) {
+    return (
+      <div ref={containerRef} className="relative flex flex-col items-center gap-2">
+        <Tooltip content="Account" side="right">
+          <div className="relative">
+            {avatarButton}
+            <div className="absolute left-full top-0 z-10 ml-1">
+              <AnimatePresence>{dropdown}</AnimatePresence>
+            </div>
+          </div>
+        </Tooltip>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-foreground transition-colors hover:bg-muted"
+      >
+        {avatarEl}
+        <span className="min-w-0 truncate text-[0.9375rem] font-medium">
+          {user.name}
+        </span>
+      </button>
+      <div className="absolute left-0 bottom-full z-10 mb-1">
+        <AnimatePresence>{dropdown}</AnimatePresence>
+      </div>
+      <Link
+        href="/dashboard/settings"
+        prefetch={true}
+        onClick={onNavClick}
+        className="flex items-center gap-2 px-3 py-2 text-[0.9375rem] font-medium text-muted-foreground transition-opacity hover:opacity-100"
+      >
+        <Settings className="h-4 w-4" />
+        Settings
+      </Link>
+    </div>
+  );
+}
+
+function SidebarContent({ onNavClick, forceExpanded }: { onNavClick?: () => void; forceExpanded?: boolean }) {
+  const pathname = usePathname();
+  const { collapsed, toggle } = useSidebar();
+  const isCollapsed = forceExpanded ? false : collapsed;
+
+  return (
+    <div className="flex h-full flex-col p-4">
+      <Link href="/dashboard" prefetch={true} className="flex items-center gap-2 py-1" onClick={onNavClick}>
+        {isCollapsed ? (
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white"
+          >
+            W
+          </div>
+        ) : (
+          <Image
+            src={SITE.logoPath}
+            alt={SITE.name}
+            width={120}
+            height={36}
+            className="h-8 w-auto object-contain brightness-0 invert"
+          />
+        )}
+      </Link>
+      <div className="my-4 border-t border-border" />
+      <nav className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden">
+        {sections.map((sec, secIdx) => (
+          <div key={sec.title}>
+            {!isCollapsed && (
+              <p className="mb-2 mt-6 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                {sec.title}
+              </p>
+            )}
+            <div className="space-y-1">
+              {sec.items.map((item, idxInSec) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                const staggerDelay = 0.05 * (secIdx * 6 + idxInSec);
+                const linkEl = (
+                  <Link
+                    href={item.href}
+                    prefetch={true}
+                    onClick={onNavClick}
+                    className={`relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] transition-[background-color,color] duration-150 ease-out hover:bg-muted ${isActive ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                    style={{ justifyContent: isCollapsed ? "center" : "flex-start" }}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="sidebar-active"
+                        className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary"
+                        transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                      />
+                    )}
+                    <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} style={{ opacity: isActive ? 1 : 0.7 }} />
+                    {!isCollapsed && (
+                      <motion.span
+                        className="font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.15, delay: staggerDelay }}
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </Link>
+                );
+                return isCollapsed ? (
+                  <Tooltip key={item.href} content={item.label} side="right">
+                    {linkEl}
+                  </Tooltip>
+                ) : (
+                  <div key={item.href}>{linkEl}</div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+      <div className="border-t border-border pt-3">
+        <SidebarProfile
+          user={PLACEHOLDER_USER}
+          isCollapsed={isCollapsed}
+          onNavClick={onNavClick}
+        />
+        <button
+          type="button"
+          onClick={toggle}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:bg-muted"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+          {!isCollapsed && <span>Collapse</span>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function DashboardSidebar() {
+  const { mobileOpen, setMobileOpen, collapsed, toggle } = useSidebar();
+
+  const desktopSidebar = (
+    <aside
+      className="fixed left-0 top-0 z-10 hidden h-screen border-r border-border bg-background transition-[width] duration-200 ease-in-out md:block"
+      style={{ width: collapsed ? 64 : SIDEBAR_WIDTH }}
+    >
+      <SidebarContent />
+    </aside>
+  );
+
+  const mobileDrawer = (
+    <AnimatePresence>
+      {mobileOpen && (
+        <>
+          <motion.div
+            role="button"
+            tabIndex={-1}
+            aria-label="Close menu"
+            className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setMobileOpen(false)}
+            onKeyDown={(e) => e.key === "Escape" && setMobileOpen(false)}
+          />
+          <motion.aside
+            className="fixed left-0 top-0 z-30 h-screen w-[240px] border-r border-border bg-background md:hidden"
+            initial={{ x: -SIDEBAR_WIDTH }}
+            animate={{ x: 0 }}
+            exit={{ x: -SIDEBAR_WIDTH }}
+            transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SidebarContent onNavClick={() => setMobileOpen(false)} forceExpanded />
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      {desktopSidebar}
+      {mobileDrawer}
+    </>
+  );
+}

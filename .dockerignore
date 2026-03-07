@@ -1,0 +1,31 @@
+# Dependencies and build
+node_modules
+.next
+.git
+.venv
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# IDE and OS
+.cursor
+.DS_Store
+*.md
+!README.md
+
+# Test and tooling
+coverage
+*.test.ts
+*.test.tsx
+__tests__
+vitest.config.ts
+eslint.config.mjs
+
+# Docs (keep image smaller)
+docs
+WESTBRIDGE-CURSOR-BUILD-GUIDE.md
+DOWNLOAD.md
+SETUP.md

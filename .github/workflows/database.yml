@@ -1,0 +1,46 @@
+name: Database
+
+on:
+  pull_request:
+    paths:
+      - "prisma/migrations/**"
+      - "prisma/schema.prisma"
+
+jobs:
+  migration-lint:
+    name: Migration Safety Check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm }
+      - run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      - name: Run migration safety check
+        run: npx tsx scripts/migration-check.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      - name: Validate migrations apply cleanly
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      - name: Schema diff
+        run: npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script || true
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test

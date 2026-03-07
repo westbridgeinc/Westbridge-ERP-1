@@ -1,0 +1,115 @@
+/**
+ * BullMQ job queues.
+ * All async work goes through these queues so it can be retried, monitored, and prioritised.
+ *
+ * Queue workers are started in a separate process (workers/index.ts).
+ * Next.js API routes only ADD jobs to the queue; they never run the work inline.
+ */
+import { Queue, type ConnectionOptions } from "bullmq";
+
+if (process.env.NODE_ENV === "production" && !process.env.REDIS_PASSWORD) {
+  throw new Error("REDIS_PASSWORD is required in production");
+}
+
+const connection: ConnectionOptions = {
+  host: process.env.REDIS_HOST ?? "localhost",
+  port: Number(process.env.REDIS_PORT ?? 6380),
+  password: process.env.REDIS_PASSWORD,
+};
+
+// TODO: BullMQ has a Dashboard package (@bull-board/api) we should wire up
+//       behind /admin/queues for visibility into stuck/failed jobs.
+//       Punting for now — we can see failed jobs in Redis directly if needed.
+
+const DEFAULT_OPTIONS = {
+  defaultJobOptions: {
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
+  },
+  connection,
+};
+
+// ─── Queue definitions ────────────────────────────────────────────────────────
+
+/** Transactional emails — invite, password reset, account activated. */
+export const emailQueue = new Queue("email", DEFAULT_OPTIONS);
+
+/** ERPNext document sync — per-document or full reconciliation. */
+export const erpSyncQueue = new Queue("erp-sync", {
+  ...DEFAULT_OPTIONS,
+  defaultJobOptions: {
+    ...DEFAULT_OPTIONS.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 },
+  },
+});
+
+/** Async report generation for large datasets. */
+export const reportsQueue = new Queue("reports", DEFAULT_OPTIONS);
+
+/** Scheduled cleanup tasks (sessions, audit logs). */
+export const cleanupQueue = new Queue("cleanup", DEFAULT_OPTIONS);
+
+/** Incoming webhook processing with retry. */
+export const webhooksQueue = new Queue("webhooks", {
+  ...DEFAULT_OPTIONS,
+  defaultJobOptions: {
+    ...DEFAULT_OPTIONS.defaultJobOptions,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 60_000 },
+  },
+});
+
+// ─── Job type payloads ────────────────────────────────────────────────────────
+
+export interface EmailJobData {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+}
+
+export interface ErpSyncJobData {
+  accountId: string;
+  doctype: string;
+  name: string;
+  erpnextSessionId: string;
+}
+
+export interface ReportJobData {
+  accountId: string;
+  reportType: string;
+  params: Record<string, unknown>;
+  requestedBy: string;
+}
+
+export interface CleanupJobData {
+  task: "sessions" | "audit_logs";
+}
+
+export interface WebhookJobData {
+  endpointId: string;
+  event: string;
+  payload: Record<string, unknown>;
+  deliveryId: string;
+}
+
+// ─── Queue helpers ────────────────────────────────────────────────────────────
+
+/** Add an email job to the queue (preferred over sending inline). */
+export async function enqueueEmail(data: EmailJobData): Promise<void> {
+  await emailQueue.add("send", data, {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 2000 },
+  });
+}
+
+/** Schedule the hourly session cleanup job. */
+export async function scheduleCleanupJobs(): Promise<void> {
+  await cleanupQueue.add("cleanup.sessions", { task: "sessions" } satisfies CleanupJobData, {
+    repeat: { every: 60 * 60 * 1000 }, // hourly
+  });
+  await cleanupQueue.add("cleanup.audit_logs", { task: "audit_logs" } satisfies CleanupJobData, {
+    repeat: { every: 24 * 60 * 60 * 1000 }, // daily
+  });
+}

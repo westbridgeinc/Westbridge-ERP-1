@@ -1,0 +1,255 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  NODE_VERSION: "20"
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+  CSRF_SECRET: ci-build-secret-not-for-production
+  ERPNEXT_URL: http://localhost:8080
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  TWOCO_MERCHANT_CODE: ci
+  TWOCO_SECRET_WORD: ci
+  RESEND_API_KEY: re_ci_placeholder
+  ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+  METRICS_TOKEN: ci-metrics-token
+
+jobs:
+  # ── Parallel quality gates ──────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - name: Dependency audit (blocks on high severity)
+        run: npm audit --audit-level=high
+      - name: License check (no GPL in production)
+        run: npx license-checker --production --failOn "GPL" --summary
+        continue-on-error: true
+      - name: SAST scan (semgrep)
+        run: |
+          pip install semgrep
+          semgrep --config=p/security-audit --config=p/secrets --config=p/typescript --error --quiet --exclude=node_modules --exclude=.next --exclude=coverage
+        continue-on-error: false
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run test -- --coverage
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  # ── Build ───────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Build production
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          CSRF_SECRET: ${{ env.CSRF_SECRET }}
+          ERPNEXT_URL: ${{ env.ERPNEXT_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ env.NEXT_PUBLIC_APP_URL }}
+          TWOCO_MERCHANT_CODE: ${{ env.TWOCO_MERCHANT_CODE }}
+          TWOCO_SECRET_WORD: ${{ env.TWOCO_SECRET_WORD }}
+          RESEND_API_KEY: ${{ env.RESEND_API_KEY }}
+          ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+          METRICS_TOKEN: ${{ env.METRICS_TOKEN }}
+          DEPLOY_STAGE: staging
+          COMMIT_SHA: ${{ github.sha }}
+          APP_VERSION: ${{ github.ref_name }}
+      - name: Verify production config
+        run: npm run verify:production
+        env:
+          CSRF_SECRET: ci-test-secret
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          ERPNEXT_URL: ${{ env.ERPNEXT_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ env.NEXT_PUBLIC_APP_URL }}
+          NODE_ENV: production
+          ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 1
+
+  # ── E2E ─────────────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Run DB migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Download build
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Start app
+        run: |
+          npm start &
+          npx wait-on --timeout 60000 http://localhost:3000
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          CSRF_SECRET: ${{ env.CSRF_SECRET }}
+          ERPNEXT_URL: ${{ env.ERPNEXT_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ env.NEXT_PUBLIC_APP_URL }}
+          TWOCO_MERCHANT_CODE: ${{ env.TWOCO_MERCHANT_CODE }}
+          TWOCO_SECRET_WORD: ${{ env.TWOCO_SECRET_WORD }}
+          ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:3000
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+  # ── Package ──────────────────────────────────────────────────────────────────
+  # Runs after all test jobs pass. Produces the distribution zip via
+  # scripts/zip-release.sh (same exclusions as local releases) and verifies
+  # no dev artifacts (.venv, coverage, test-results) crept in.
+  package:
+    name: Package release zip
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests, build]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+
+      - name: Create release zip
+        run: |
+          chmod +x scripts/zip-release.sh
+          scripts/zip-release.sh /tmp/westbridge-platform-${{ github.sha }}.zip
+
+      - name: Verify zip is clean
+        run: |
+          echo "Checking for .venv..."
+          unzip -l /tmp/westbridge-platform-${{ github.sha }}.zip | grep -E '\.venv' \
+            && echo "FAIL: .venv found in zip" && exit 1 || true
+
+          echo "Checking for coverage/..."
+          unzip -l /tmp/westbridge-platform-${{ github.sha }}.zip | grep 'coverage/' \
+            && echo "FAIL: coverage found in zip" && exit 1 || true
+
+          echo "Checking for test-results/..."
+          unzip -l /tmp/westbridge-platform-${{ github.sha }}.zip | grep 'test-results/' \
+            && echo "FAIL: test-results found in zip" && exit 1 || true
+
+          echo "Package verified clean."
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: westbridge-platform
+          path: /tmp/westbridge-platform-${{ github.sha }}.zip
+          retention-days: 14

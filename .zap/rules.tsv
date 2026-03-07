@@ -1,0 +1,5 @@
+# ZAP rule suppressions for known false positives in Next.js / Westbridge stack
+# Format: ruleId	IGNORE	url-regex	evidence	description
+10096	IGNORE		X-Content-Type-Options	Next.js sets this via security-headers middleware
+10038	IGNORE		Content-Security-Policy	CSP is set dynamically per-request with nonce
+10036	IGNORE		Server Leakage via HTTP Response Header	Next.js server header is expected
