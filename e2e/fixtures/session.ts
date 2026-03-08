@@ -1,19 +1,22 @@
 /**
  * E2E helpers: create a test session via direct DB seed and clean up after.
  * Uses the same DATABASE_URL as the app (e.g. in CI).
- * Uses relative imports so Playwright's runner can load this without path aliases.
+ * Uses raw pg queries instead of the Prisma generated client to avoid
+ * ESM/CJS interop issues when Playwright's esbuild transformer loads this file.
  */
 
 import { createHash, randomBytes } from "crypto";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../lib/generated/prisma/client";
+import { Client } from "pg";
 
-function getPrisma(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL ?? "postgresql://localhost:5432/westbridge";
-  const adapter = new PrismaPg({ connectionString });
-  return new PrismaClient({ adapter });
+function cuid(): string {
+  // Simple cuid2-like ID for test data
+  return "c" + randomBytes(16).toString("base64url").slice(0, 23);
 }
-const prisma = getPrisma();
+
+function getClient(): Client {
+  const connectionString = process.env.DATABASE_URL ?? "postgresql://localhost:5432/westbridge";
+  return new Client({ connectionString });
+}
 
 const SESSION_EXPIRY_DAYS = 7;
 
@@ -39,50 +42,55 @@ export interface TestSession {
  * Create a test user and session in the DB. Call cleanup() after the test.
  */
 export async function createTestSession(role: SessionRole): Promise<TestSession> {
+  const client = getClient();
+  await client.connect();
+
   const id = `e2e-${role}-${Date.now()}-${randomBytes(4).toString("hex")}`;
   const email = `${id}@e2e.test`;
+  const accountId = cuid();
+  const userId = cuid();
+  const sessionId = cuid();
 
-  const account = await prisma.account.create({
-    data: {
-      email,
-      companyName: "E2E Test",
-      plan: "Starter",
-      status: "active",
-    },
-  });
+  // Insert account
+  await client.query(
+    `INSERT INTO accounts (id, email, company_name, plan, status, updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [accountId, email, "E2E Test", "Starter", "active"],
+  );
 
-  const user = await prisma.user.create({
-    data: {
-      accountId: account.id,
-      email,
-      role,
-      status: "active",
-    },
-  });
+  // Insert user
+  await client.query(
+    `INSERT INTO users (id, account_id, email, role, status, updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [userId, accountId, email, role, "active"],
+  );
 
+  // Insert session
   const rawToken = randomBytes(32).toString("base64url");
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
-  await prisma.session.create({
-    data: {
-      userId: user.id,
-      token: tokenHash,
-      erpnextSid: "e2e-erp-sid",
-      expiresAt,
-    },
-  });
+  await client.query(
+    `INSERT INTO sessions (id, user_id, token, erpnext_sid, expires_at, last_active_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [sessionId, userId, tokenHash, "e2e-erp-sid", expiresAt],
+  );
+
+  await client.end();
 
   async function cleanup() {
-    await prisma.session.deleteMany({ where: { userId: user.id } });
-    await prisma.user.delete({ where: { id: user.id } });
-    await prisma.account.delete({ where: { id: account.id } });
+    const cleanupClient = getClient();
+    await cleanupClient.connect();
+    await cleanupClient.query("DELETE FROM sessions WHERE user_id = $1", [userId]);
+    await cleanupClient.query("DELETE FROM users WHERE id = $1", [userId]);
+    await cleanupClient.query("DELETE FROM accounts WHERE id = $1", [accountId]);
+    await cleanupClient.end();
   }
 
   return {
     sessionCookie: rawToken,
-    userId: user.id,
-    accountId: account.id,
+    userId,
+    accountId,
     role,
     cleanup,
   };

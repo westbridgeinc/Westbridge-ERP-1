@@ -13,8 +13,4 @@ export default defineConfig({
   },
   timeout: 30_000,
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // Use a separate tsconfig that targets CommonJS so that Node.js can load
-  // the Prisma generated client (which uses CJS runtime internals) without
-  // hitting "exports is not defined in ES module scope" errors.
-  tsconfig: "./tsconfig.e2e.json",
 });
