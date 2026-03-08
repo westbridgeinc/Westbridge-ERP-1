@@ -121,7 +121,7 @@ export async function POST(req: Request) {
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
   let finalResponse: Anthropic.Message | null = null;
-  let currentMessages = [...messages];
+  const currentMessages = [...messages];
 
   // Agentic loop — max 5 rounds of tool use
   for (let round = 0; round < 5; round++) {

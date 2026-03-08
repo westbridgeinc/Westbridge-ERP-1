@@ -3,7 +3,7 @@
  * Call `initTelemetry()` once at process start (e.g. in instrumentation.ts).
  * Use `withSpan()` to wrap any async operation in a named span.
  */
-import { trace, context, SpanStatusCode, type Span, type Attributes } from "@opentelemetry/api";
+import { trace, SpanStatusCode, type Span, type Attributes } from "@opentelemetry/api";
 
 // ─── SDK bootstrap (server-only) ────────────────────────────────────────────
 

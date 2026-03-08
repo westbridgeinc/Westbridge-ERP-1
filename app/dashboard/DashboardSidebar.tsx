@@ -321,7 +321,7 @@ function SidebarContent({ onNavClick, forceExpanded }: { onNavClick?: () => void
 }
 
 export function DashboardSidebar() {
-  const { mobileOpen, setMobileOpen, collapsed, toggle } = useSidebar();
+  const { mobileOpen, setMobileOpen, collapsed } = useSidebar();
 
   const desktopSidebar = (
     <aside

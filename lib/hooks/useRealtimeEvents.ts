@@ -85,7 +85,7 @@ export function useRealtimeEvents({
     connect();
 
     return () => {
-      retryTimeout && clearTimeout(retryTimeout);
+      if (retryTimeout) clearTimeout(retryTimeout);
       es?.close();
     };
   }, [enabled]);

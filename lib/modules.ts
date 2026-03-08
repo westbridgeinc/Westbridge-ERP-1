@@ -381,16 +381,16 @@ export function isBundleIncludedInPlan(bundleId: string, planId: PlanId): boolea
 }
 
 export function isModuleIncludedInPlan(moduleId: string, planId: PlanId): boolean {
-  const module = getModule(moduleId);
-  if (!module) return false;
-  return isBundleIncludedInPlan(module.bundleId, planId);
+  const mod = getModule(moduleId);
+  if (!mod) return false;
+  return isBundleIncludedInPlan(mod.bundleId, planId);
 }
 
 export function getAddOnPrice(moduleId: string, planId: PlanId): number | null {
   if (isModuleIncludedInPlan(moduleId, planId)) return null;
-  const module = getModule(moduleId);
-  if (!module) return null;
-  const bundle = getBundle(module.bundleId);
+  const mod = getModule(moduleId);
+  if (!mod) return null;
+  const bundle = getBundle(mod.bundleId);
   return bundle ? bundle.standalonePrice : null;
 }
 

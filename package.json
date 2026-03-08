@@ -98,5 +98,9 @@
     "typescript": "^5",
     "vitest": "^4.0.18",
     "wait-on": "^8.0.1"
+  },
+  "overrides": {
+    "hono": "^4.12.4",
+    "@hono/node-server": "^1.19.10"
   }
 }
