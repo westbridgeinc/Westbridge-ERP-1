@@ -97,46 +97,38 @@ export default function HRPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEmployees = () => {
+  const fetchEmployees = async (signal: AbortSignal) => {
     setLoading(true);
     setError(null);
-    let cancelled = false;
-
-    fetch('/api/erp/list?doctype=Employee&limit_page_length=100&fields=["name","employee_name","designation","department","status","date_of_joining"]')
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) {
-          setEmployees([]);
-          setLoading(false);
-          return;
-        }
-        const json = await res.json();
-        if (cancelled) return;
-        const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-        const mapped: Employee[] = raw.map((r, i) => ({
-          id: String(r.name ?? `EMP-${i}`),
-          name: String(r.employee_name ?? r.name ?? ""),
-          designation: String(r.designation ?? "—"),
-          department: String(r.department ?? "—"),
-          status: String(r.status ?? "") === "Active" ? "Active" : "Inactive",
-          dateJoined: String(r.date_of_joining ?? ""),
-        }));
-        setEmployees(mapped);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setEmployees([]);
-          setLoading(false);
-        }
-      });
-
-    return () => { cancelled = true; };
+    try {
+      const res = await fetch(
+        '/api/erp/list?doctype=Employee&limit_page_length=100&fields=["name","employee_name","designation","department","status","date_of_joining"]',
+        { signal }
+      );
+      if (!res.ok) { setEmployees([]); return; }
+      const json = await res.json();
+      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
+      const mapped: Employee[] = raw.map((r, i) => ({
+        id: String(r.name ?? `EMP-${i}`),
+        name: String(r.employee_name ?? r.name ?? ""),
+        designation: String(r.designation ?? "—"),
+        department: String(r.department ?? "—"),
+        status: String(r.status ?? "") === "Active" ? "Active" : "Inactive",
+        dateJoined: String(r.date_of_joining ?? ""),
+      }));
+      setEmployees(mapped);
+    } catch {
+      setEmployees([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const cleanup = fetchEmployees();
-    return cleanup;
+    const controller = new AbortController();
+    fetchEmployees(controller.signal);
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(employees), [employees]);
@@ -159,7 +151,7 @@ export default function HRPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={fetchEmployees}>Retry</Button>
+            <Button variant="outline" size="sm" onClick={() => fetchEmployees(new AbortController().signal)}>Retry</Button>
           </CardContent>
         </Card>
       </div>

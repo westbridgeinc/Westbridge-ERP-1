@@ -133,52 +133,40 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInventory = () => {
+  const fetchInventory = async (signal: AbortSignal) => {
     setLoading(true);
     setError(null);
-    let cancelled = false;
-
-    fetch("/api/erp/list?doctype=Item&limit_page_length=100")
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) {
-          setItems([]);
-          setLoading(false);
-          return;
-        }
-        const json = await res.json();
-        if (cancelled) return;
-        // Map ERPNext Item fields to our display shape
-        const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-        const mapped: InventoryItem[] = raw.map((r, i) => ({
-          id: String(r.name ?? `ITM-${i}`),
-          item: String(r.item_name ?? r.name ?? ""),
-          warehouse: String(r.default_warehouse ?? "—"),
-          qty: Number(r.total_projected_qty ?? 0),
-          value: Number(r.valuation_rate ?? 0) * Number(r.total_projected_qty ?? 0),
-          uom: String(r.stock_uom ?? ""),
-          status: Number(r.total_projected_qty ?? 0) <= 0
-            ? "Out of Stock"
-            : Number(r.total_projected_qty ?? 0) < 10
-            ? "Low Stock"
-            : "In Stock",
-        }));
-        setItems(mapped);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setItems([]);
-          setLoading(false);
-        }
-      });
-
-    return () => { cancelled = true; };
+    try {
+      const res = await fetch("/api/erp/list?doctype=Item&limit_page_length=100", { signal });
+      if (!res.ok) { setItems([]); return; }
+      const json = await res.json();
+      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
+      const mapped: InventoryItem[] = raw.map((r, i) => ({
+        id: String(r.name ?? `ITM-${i}`),
+        item: String(r.item_name ?? r.name ?? ""),
+        warehouse: String(r.default_warehouse ?? "—"),
+        qty: Number(r.total_projected_qty ?? 0),
+        value: Number(r.valuation_rate ?? 0) * Number(r.total_projected_qty ?? 0),
+        uom: String(r.stock_uom ?? ""),
+        status: Number(r.total_projected_qty ?? 0) <= 0
+          ? "Out of Stock"
+          : Number(r.total_projected_qty ?? 0) < 10
+          ? "Low Stock"
+          : "In Stock",
+      }));
+      setItems(mapped);
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const cleanup = fetchInventory();
-    return cleanup;
+    const controller = new AbortController();
+    fetchInventory(controller.signal);
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(items), [items]);
@@ -201,7 +189,7 @@ export default function InventoryPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={fetchInventory}>Retry</Button>
+            <Button variant="outline" size="sm" onClick={() => fetchInventory(new AbortController().signal)}>Retry</Button>
           </CardContent>
         </Card>
       </div>

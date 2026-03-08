@@ -120,52 +120,44 @@ export default function PayrollPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPayroll = () => {
+  const fetchPayroll = async (signal: AbortSignal) => {
     setLoading(true);
     setError(null);
-    let cancelled = false;
-
-    fetch('/api/erp/list?doctype=Salary+Slip&limit_page_length=100&fields=["name","employee_name","start_date","gross_pay","total_deduction","net_pay","docstatus"]')
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) {
-          setRecords([]);
-          setLoading(false);
-          return;
-        }
-        const json = await res.json();
-        if (cancelled) return;
-        const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-        const mapped: PayrollRecord[] = raw.map((r, i) => {
-          const docstatus = Number(r.docstatus ?? 0);
-          const status: PayrollRecord["status"] =
-            docstatus === 1 ? "Processed" : docstatus === 2 ? "Rejected" : "Pending";
-          return {
-            id: String(r.name ?? `PAY-${i}`),
-            employee: String(r.employee_name ?? r.name ?? ""),
-            period: String(r.start_date ?? ""),
-            grossPay: Number(r.gross_pay ?? 0),
-            deductions: Number(r.total_deduction ?? 0),
-            netPay: Number(r.net_pay ?? 0),
-            status,
-          };
-        });
-        setRecords(mapped);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setRecords([]);
-          setLoading(false);
-        }
+    try {
+      const res = await fetch(
+        '/api/erp/list?doctype=Salary+Slip&limit_page_length=100&fields=["name","employee_name","start_date","gross_pay","total_deduction","net_pay","docstatus"]',
+        { signal }
+      );
+      if (!res.ok) { setRecords([]); return; }
+      const json = await res.json();
+      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
+      const mapped: PayrollRecord[] = raw.map((r, i) => {
+        const docstatus = Number(r.docstatus ?? 0);
+        const status: PayrollRecord["status"] =
+          docstatus === 1 ? "Processed" : docstatus === 2 ? "Rejected" : "Pending";
+        return {
+          id: String(r.name ?? `PAY-${i}`),
+          employee: String(r.employee_name ?? r.name ?? ""),
+          period: String(r.start_date ?? ""),
+          grossPay: Number(r.gross_pay ?? 0),
+          deductions: Number(r.total_deduction ?? 0),
+          netPay: Number(r.net_pay ?? 0),
+          status,
+        };
       });
-
-    return () => { cancelled = true; };
+      setRecords(mapped);
+    } catch {
+      setRecords([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const cleanup = fetchPayroll();
-    return cleanup;
+    const controller = new AbortController();
+    fetchPayroll(controller.signal);
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(records), [records]);
@@ -188,7 +180,7 @@ export default function PayrollPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={fetchPayroll}>Retry</Button>
+            <Button variant="outline" size="sm" onClick={() => fetchPayroll(new AbortController().signal)}>Retry</Button>
           </CardContent>
         </Card>
       </div>
