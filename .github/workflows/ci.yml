@@ -132,6 +132,7 @@ jobs:
           RESEND_API_KEY: ${{ env.RESEND_API_KEY }}
           ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
           METRICS_TOKEN: ${{ env.METRICS_TOKEN }}
+          REDIS_PASSWORD: ci-redis-password-not-for-production
           DEPLOY_STAGE: staging
           COMMIT_SHA: ${{ github.sha }}
           APP_VERSION: ${{ github.ref_name }}
