@@ -18,9 +18,11 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - name: License check
-        # LGPL-3.0-or-later covers @img/sharp-libvips-linux-x64 (native image lib, LGPL applies
-        # to the library itself — not copyleft for application code that links dynamically).
-        run: npx license-checker --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;CC-BY-4.0;Unlicense;LGPL-3.0-or-later;LGPL-3.0;Python-2.0" --excludePrivatePackages
+        # Additional permissive/weak-copyleft licences needed for Linux-only transitive deps:
+        #  LGPL-3.0-or-later : @img/sharp-libvips-linux-x64 (native lib; LGPL applies to the
+        #                       lib itself, not application code that links to it dynamically)
+        #  MPL-2.0           : axe-core (file-level copyleft only; does not affect app code)
+        run: npx license-checker --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;CC-BY-4.0;Unlicense;LGPL-3.0-or-later;LGPL-3.0;MPL-2.0;Python-2.0" --excludePrivatePackages
 
   codeql:
     name: CodeQL SAST
