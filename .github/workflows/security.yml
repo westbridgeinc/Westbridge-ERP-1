@@ -22,23 +22,24 @@ jobs:
         # copyleft obligations on the application. Weak copyleft (LGPL, MPL) and permissive
         # licences (BlueOak, CC-BY, Python-2.0) are acceptable for dependency use.
         run: |
-          VIOLATIONS=$(npx --yes license-checker --excludePrivatePackages --json 2>/dev/null \
-            | python3 -c "
+          npx --yes license-checker --excludePrivatePackages --json 2>/dev/null > /tmp/licenses.json
+          python3 - <<'PYEOF'
           import sys, json
-          data = json.load(sys.stdin)
-          blocked = {'GPL-2.0', 'GPL-2.0-only', 'GPL-2.0-or-later', 'GPL-3.0', 'GPL-3.0-only', 'GPL-3.0-or-later', 'AGPL-3.0', 'AGPL-3.0-only', 'AGPL-3.0-or-later'}
+          with open('/tmp/licenses.json') as f:
+              data = json.load(f)
+          blocked = {'GPL-2.0','GPL-2.0-only','GPL-2.0-or-later','GPL-3.0','GPL-3.0-only','GPL-3.0-or-later','AGPL-3.0','AGPL-3.0-only','AGPL-3.0-or-later'}
+          violations = []
           for pkg, info in data.items():
-              lic = str(info.get('licenses', ''))
-              parts = [l.strip().strip('()') for l in lic.replace(' OR ', ';').replace(' AND ', ';').split(';')]
+              lic = str(info.get('licenses',''))
+              parts = [l.strip().strip('()') for l in lic.replace(' OR ',';').replace(' AND ',';').split(';')]
               if any(p in blocked for p in parts):
-                  print(f'BLOCKED: {pkg} ({lic})')
-          ")
-          if [ -n "\$VIOLATIONS" ]; then
-            echo "Found packages with prohibited licences (strong copyleft):"
-            echo "\$VIOLATIONS"
-            exit 1
-          fi
-          echo "License check passed — no strong copyleft dependencies found."
+                  violations.append(f'BLOCKED: {pkg} ({lic})')
+          if violations:
+              print('Found packages with prohibited licences (strong copyleft):')
+              print('\n'.join(violations))
+              sys.exit(1)
+          print('License check passed - no strong copyleft dependencies found.')
+          PYEOF
 
   codeql:
     name: CodeQL SAST
