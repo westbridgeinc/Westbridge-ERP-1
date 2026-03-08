@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
+import { NextResponse } from "next/server";
 import { COOKIE } from "@/lib/constants";
 
-const validateSessionMock = vi.fn();
-vi.mock("@/lib/services/session.service", () => ({
-  validateSession: (token: string, _req?: Request) => validateSessionMock(token),
+// Mock withPermission directly so we control what it returns without needing
+// the full session/cookie/RBAC stack in unit tests
+const withPermissionMock = vi.fn();
+vi.mock("@/lib/api/middleware", () => ({
+  withPermission: (...args: unknown[]) => withPermissionMock(...args),
 }));
+
 vi.mock("next/headers", () => ({
   cookies: () =>
     Promise.resolve({
@@ -16,7 +20,6 @@ vi.mock("@/lib/services/erp.service", () => ({ getDoc: vi.fn(), createDoc: vi.fn
 vi.mock("@/lib/services/audit.service", () => ({ logAudit: vi.fn(), auditContext: () => ({ ipAddress: "127.0.0.1", userAgent: "test" }) }));
 vi.mock("@/lib/security-monitor", () => ({ reportSecurityEvent: vi.fn() }));
 vi.mock("@/lib/csrf", () => ({ validateCsrf: vi.fn(() => true), CSRF_COOKIE_NAME: "westbridge_csrf" }));
-// Route uses checkTieredRateLimit from rate-limit-tiers (not @/lib/ratelimit)
 vi.mock("@/lib/api/rate-limit-tiers", () => ({
   checkTieredRateLimit: () => Promise.resolve({ allowed: true }),
   getClientIdentifier: () => "id",
@@ -26,19 +29,17 @@ vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 
 describe("POST /api/erp/doc", () => {
   beforeEach(() => {
-    validateSessionMock.mockReset();
+    withPermissionMock.mockReset();
   });
 
-  it("returns 403 when session role is viewer (create requires invoices:write permission)", async () => {
-    // RBAC: viewer does not have invoices:write — only member, manager, admin, owner do
-    validateSessionMock.mockResolvedValue({
-      ok: true,
-      data: {
-        userId: "u1",
-        accountId: "a1",
-        role: "viewer",
-        erpnextSid: "erpsid",
-      },
+  it("returns 403 when permission is denied (viewer role lacks invoices:write)", async () => {
+    // Simulate withPermission denying access — returns a 403 response
+    withPermissionMock.mockResolvedValue({
+      ok: false,
+      response: NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "Insufficient permissions" } },
+        { status: 403 }
+      ),
     });
     const request = new Request("http://localhost/api/erp/doc", {
       method: "POST",
@@ -52,8 +53,14 @@ describe("POST /api/erp/doc", () => {
     expect(json.error?.message).toBe("Insufficient permissions");
   });
 
-  it("returns 401 when validateSession fails", async () => {
-    validateSessionMock.mockResolvedValue({ ok: false, error: "Invalid session" });
+  it("returns 401 when permission check returns unauthorized", async () => {
+    withPermissionMock.mockResolvedValue({
+      ok: false,
+      response: NextResponse.json(
+        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        { status: 401 }
+      ),
+    });
     const request = new Request("http://localhost/api/erp/doc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
