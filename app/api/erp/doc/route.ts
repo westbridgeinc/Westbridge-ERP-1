@@ -113,19 +113,9 @@ export async function POST(request: Request) {
   const permCheck = await withPermission(request, "invoices:write");
   if (!permCheck.ok) return permCheck.response;
   const { session } = permCheck;
-  if (!session.erpnextSid) {
-    return NextResponse.json(apiError("UNAUTHORIZED", "ERP session not available. Please log in again.", undefined, meta()), { status: 401, headers: headers() });
-  }
   const ctx = auditContext(request);
 
-  const rateLimitPost = await checkTieredRateLimit(getClientIdentifier(request), "authenticated", "/api/erp/doc");
-  if (!rateLimitPost.allowed) {
-    return NextResponse.json(
-      apiError("RATE_LIMIT", "Too many requests. Try again in a minute.", undefined, meta()),
-      { status: 429, headers: { ...headers(), ...rateLimitHeaders(rateLimitPost) } }
-    );
-  }
-
+  // CSRF must be validated before any business logic (including ERP session check)
   const cookieStore = await cookies();
   const csrfCookie = cookieStore.get(CSRF_COOKIE_NAME)?.value;
   const csrfHeader = request.headers.get("x-csrf-token") ?? request.headers.get("X-CSRF-Token");
@@ -149,6 +139,18 @@ export async function POST(request: Request) {
     return NextResponse.json(
       apiError("FORBIDDEN", "Invalid or missing CSRF token.", undefined, meta()),
       { status: 403, headers: headers() }
+    );
+  }
+
+  if (!session.erpnextSid) {
+    return NextResponse.json(apiError("UNAUTHORIZED", "ERP session not available. Please log in again.", undefined, meta()), { status: 401, headers: headers() });
+  }
+
+  const rateLimitPost = await checkTieredRateLimit(getClientIdentifier(request), "authenticated", "/api/erp/doc");
+  if (!rateLimitPost.allowed) {
+    return NextResponse.json(
+      apiError("RATE_LIMIT", "Too many requests. Try again in a minute.", undefined, meta()),
+      { status: 429, headers: { ...headers(), ...rateLimitHeaders(rateLimitPost) } }
     );
   }
 
