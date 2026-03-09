@@ -157,7 +157,6 @@ export default function PayrollPage() {
     const controller = new AbortController();
     fetchPayroll(controller.signal);
     return () => controller.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(records), [records]);

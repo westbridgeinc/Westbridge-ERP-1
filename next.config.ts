@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
   productionBrowserSourceMaps: false,
-  // Project root when running from v1 (e.g. npm run dev)
-  turbopack: { root: process.cwd() },
+  outputFileTracingRoot: path.join(process.cwd()),
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
     const scriptSrc = isProd

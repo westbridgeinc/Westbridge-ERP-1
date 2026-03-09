@@ -6,16 +6,21 @@
 import { Result, ok, err } from "@/lib/utils/result";
 
 // Validate ERPNEXT_URL at module load in production to fail fast rather than
-// silently sending credentials over plain HTTP.
+// silently sending credentials over plain HTTP. Skip during Next.js build phase.
 const ERPNEXT_URL = (() => {
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
   const url = process.env.ERPNEXT_URL;
   if (!url) {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "production" && !isBuildPhase) {
       throw new Error("ERPNEXT_URL environment variable is required in production");
     }
     return "http://localhost:8080";
   }
-  if (process.env.NODE_ENV === "production" && !url.startsWith("https://")) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    !isBuildPhase &&
+    !url.startsWith("https://")
+  ) {
     throw new Error("ERPNEXT_URL must use HTTPS in production");
   }
   return url;

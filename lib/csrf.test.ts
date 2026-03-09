@@ -3,12 +3,12 @@ import { describe, it, expect } from "vitest";
 process.env.CSRF_SECRET = "test-secret-for-csrf";
 
 describe("csrf", () => {
-  it("generates a token with two segments", async () => {
+  it("generates a token with three segments (value.timestamp.signature)", async () => {
     const { generateCsrfToken } = await import("./csrf");
     const token = generateCsrfToken();
-    expect(token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+    expect(token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
     const parts = token.split(".");
-    expect(parts).toHaveLength(2);
+    expect(parts).toHaveLength(3);
   });
 
   it("verifies a valid token", async () => {
@@ -20,8 +20,8 @@ describe("csrf", () => {
   it("rejects tampered token", async () => {
     const { generateCsrfToken, verifyCsrfToken } = await import("./csrf");
     const token = generateCsrfToken();
-    const [value] = token.split(".");
-    const tampered = `${value}.wrongsignature`;
+    const parts = token.split(".");
+    const tampered = `${parts[0]}.${parts[1]}.wrongsignature`;
     expect(verifyCsrfToken(tampered)).toBe(false);
   });
 
@@ -44,8 +44,8 @@ describe("csrf", () => {
   it("verifyCsrfToken safeEqual catch when signature encoding differs", async () => {
     const { verifyCsrfToken, generateCsrfToken } = await import("./csrf");
     const token = generateCsrfToken();
-    const [value] = token.split(".");
+    const parts = token.split(".");
     const badSig = "\u00e9".repeat(24);
-    expect(verifyCsrfToken(`${value}.${badSig}`)).toBe(false);
+    expect(verifyCsrfToken(`${parts[0]}.${parts[1]}.${badSig}`)).toBe(false);
   });
 });

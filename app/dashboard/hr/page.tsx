@@ -128,7 +128,6 @@ export default function HRPage() {
     const controller = new AbortController();
     fetchEmployees(controller.signal);
     return () => controller.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(employees), [employees]);

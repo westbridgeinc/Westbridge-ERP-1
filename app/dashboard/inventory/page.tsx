@@ -166,7 +166,6 @@ export default function InventoryPage() {
     const controller = new AbortController();
     fetchInventory(controller.signal);
     return () => controller.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => deriveStats(items), [items]);

@@ -7,9 +7,12 @@ const mockDelete = vi.fn();
 const mockDeleteMany = vi.fn();
 const mockFindMany = vi.fn();
 const mockUpdate = vi.fn();
+const mockUserFindUnique = vi.fn();
 
+const mockTransaction = vi.fn();
 vi.mock("@/lib/data/prisma", () => ({
   prisma: {
+    $transaction: (...args: unknown[]) => mockTransaction(...args),
     session: {
       create: (...args: unknown[]) => mockCreate(...args),
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
@@ -17,6 +20,9 @@ vi.mock("@/lib/data/prisma", () => ({
       update: (...args: unknown[]) => mockUpdate(...args),
       delete: (...args: unknown[]) => mockDelete(...args),
       deleteMany: (...args: unknown[]) => mockDeleteMany(...args),
+    },
+    user: {
+      findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
     },
   },
 }));
@@ -30,6 +36,17 @@ describe("session.service", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUserFindUnique.mockResolvedValue(null);
+    mockTransaction.mockImplementation(async (fn: (tx: { session: { findMany: typeof mockFindMany; delete: typeof mockDelete; create: typeof mockCreate } }) => Promise<void>) => {
+      const tx = {
+        session: {
+          findMany: mockFindMany,
+          delete: mockDelete,
+          create: mockCreate,
+        },
+      };
+      return fn(tx);
+    });
   });
 
   describe("validateSession", () => {
