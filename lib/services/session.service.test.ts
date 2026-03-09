@@ -2,24 +2,26 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mock external dependencies ───────────────────────────────────────────────
 
+const mockSession = {
+  findMany: vi.fn(),
+  findUnique: vi.fn(),
+  create: vi.fn(),
+  delete: vi.fn(),
+  deleteMany: vi.fn(),
+  update: vi.fn(),
+};
+const mockUser = {
+  findUnique: vi.fn(),
+};
+const mockPrisma = {
+  session: mockSession,
+  user: mockUser,
+  $transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) => {
+    return cb(mockPrisma);
+  }),
+};
 vi.mock("@/lib/data/prisma", () => ({
-  prisma: {
-    session: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      update: vi.fn(),
-    },
-    user: {
-      findUnique: vi.fn(),
-    },
-    $transaction: vi.fn(async (cb: (tx: typeof import("@/lib/data/prisma").prisma) => Promise<unknown>) => {
-      const { prisma } = await import("@/lib/data/prisma");
-      return cb(prisma as unknown as typeof import("@/lib/data/prisma").prisma);
-    }),
-  },
+  prisma: mockPrisma,
 }));
 
 vi.mock("@/lib/redis", () => ({

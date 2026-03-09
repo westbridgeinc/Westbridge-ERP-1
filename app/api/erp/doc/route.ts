@@ -10,7 +10,6 @@ import { reportSecurityEvent } from "@/lib/security-monitor";
 import { checkTieredRateLimit, getClientIdentifier, rateLimitHeaders } from "@/lib/api/rate-limit-tiers";
 import { withPermission } from "@/lib/api/middleware";
 import * as Sentry from "@sentry/nextjs";
-import { ALLOWED_DOCTYPES_SET } from "@/lib/erp-constants";
 
 const MAX_BODY_BYTES = 1_048_576;
 
