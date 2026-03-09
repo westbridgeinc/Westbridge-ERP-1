@@ -31,6 +31,7 @@ vi.mock("@/lib/redis", () => ({
   getRedis: vi.fn(() => null), // No Redis by default
 }));
 
+<<<<<<< HEAD
 vi.mock("@/lib/encryption", () => ({
   encrypt: vi.fn((v: string) => `enc:${v}`),
   decrypt: vi.fn((v: string) => v.replace(/^enc:/, "")),
