@@ -10,7 +10,7 @@ env:
   NODE_VERSION: "20"
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
   CSRF_SECRET: ci-build-secret-not-for-production
-  ERPNEXT_URL: http://localhost:8080
+  ERPNEXT_URL: https://localhost:8080
   NEXT_PUBLIC_APP_URL: http://localhost:3000
   TWOCO_MERCHANT_CODE: ci
   TWOCO_SECRET_WORD: ci
