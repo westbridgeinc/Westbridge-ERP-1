@@ -111,14 +111,72 @@ export const cache = {
 
   /**
    * Cache-aside: return cached value if present, otherwise call fn, cache, and return.
-   * Handles stale-while-revalidate: if within the SWR window, return stale and refresh in background.
+   * Supports stale-while-revalidate: if the main TTL has expired but the SWR window
+   * hasn't, return stale data immediately and refresh in the background.
    */
   async wrap<T>(key: string, fn: () => Promise<T>, options: CacheOptions): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) return cached;
 
+    // Check SWR: if staleWhileRevalidate is set, look for stale data in Redis
+    // using a separate key with an extended TTL.
+    if (options.staleWhileRevalidate) {
+      const redis = getRedis();
+      if (redis) {
+        try {
+          const staleRaw = await redis.get(`${key}:swr`);
+          if (staleRaw) {
+            const staleValue = JSON.parse(staleRaw) as T;
+            // Return stale data immediately; refresh in background
+            void (async () => {
+              try {
+                const fresh = await fn();
+                await this.set(key, fresh, options);
+                // Update the SWR key too
+                await redis.set(
+                  `${key}:swr`,
+                  JSON.stringify(fresh),
+                  "EX",
+                  options.ttl + options.staleWhileRevalidate!
+                );
+              } catch (e) {
+                logger.warn("Cache.wrap SWR revalidation failed", {
+                  key,
+                  error: e instanceof Error ? e.message : String(e),
+                });
+              }
+            })();
+            return staleValue;
+          }
+        } catch {
+          // Fall through to fresh fetch
+        }
+      }
+    }
+
     const value = await fn();
     await this.set(key, value, options);
+
+    // Also set the SWR key with extended TTL
+    if (options.staleWhileRevalidate) {
+      const redis = getRedis();
+      if (redis) {
+        redis
+          .set(
+            `${key}:swr`,
+            JSON.stringify(value),
+            "EX",
+            options.ttl + options.staleWhileRevalidate
+          )
+          .catch((e) =>
+            logger.warn("Cache.wrap SWR key set failed", {
+              key,
+              error: e instanceof Error ? e.message : String(e),
+            })
+          );
+      }
+    }
+
     return value;
   },
 };

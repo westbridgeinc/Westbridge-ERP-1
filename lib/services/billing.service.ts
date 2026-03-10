@@ -35,11 +35,11 @@ export async function createAccount(
 ): Promise<Result<CreateAccountResult, string>> {
   const { email, companyName, plan, modulesSelected } = input;
   if (!email?.trim() || !companyName?.trim() || !plan?.trim()) {
-    return { ok: false, error: "Email, company name, and plan are required" };
+    return err("Email, company name, and plan are required");
   }
   const planSlug = plan as PlanSlug;
   if (!VALID_PLANS.includes(planSlug)) {
-    return { ok: false, error: "Invalid plan" };
+    return err("Invalid plan");
   }
 
   try {

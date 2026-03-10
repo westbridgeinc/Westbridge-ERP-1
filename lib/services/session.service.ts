@@ -16,7 +16,7 @@ import { logger } from "@/lib/logger";
 const SESSION_EXPIRY_DAYS = 7;
 const IDLE_TIMEOUT_MINUTES = 30;
 const MAX_CONCURRENT_SESSIONS = 5;
-const SESSION_CACHE_TTL_SEC = 5;
+const SESSION_CACHE_TTL_SEC = 30;
 const SESSION_CACHE_PREFIX = "session:v1:";
 // Index of all cache keys for a given userId — used for bulk revocation.
 const SESSION_USER_INDEX_PREFIX = "session:user:";

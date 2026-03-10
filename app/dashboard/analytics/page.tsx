@@ -109,19 +109,19 @@ export default function AnalyticsPage() {
             <AreaChart data={revData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="fillRevAnalytics" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground) / 0.6)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--muted-foreground) / 0.6)" }} />
               <YAxis hide domain={[0, 4]} />
               <Tooltip
                 formatter={(value) => [value != null ? `${Number(value)}M` : "—", "Revenue"]}
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "0.25rem", color: "hsl(var(--foreground))" }}
-                labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "0.25rem", color: "var(--foreground)" }}
+                labelStyle={{ color: "var(--muted-foreground)" }}
               />
-              <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#fillRevAnalytics)" />
+              <Area type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} fill="url(#fillRevAnalytics)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -150,12 +150,12 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height={192}>
               <BarChart data={byCategory} layout="vertical" margin={{ top: 0, right: 0, left: 80, bottom: 0 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={80} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground) / 0.6)" }} />
+                <YAxis type="category" dataKey="name" width={80} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--muted-foreground) / 0.6)" }} />
                 <Tooltip
                   formatter={(value) => [`${Number(value)}M`, "Revenue"]}
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "0.25rem", color: "hsl(var(--foreground))" }}
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "0.25rem", color: "var(--foreground)" }}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="var(--primary)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

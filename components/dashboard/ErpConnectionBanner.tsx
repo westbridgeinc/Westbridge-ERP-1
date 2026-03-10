@@ -46,7 +46,7 @@ export function ErpConnectionBanner() {
   return (
     <div className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-border border-l-4 border-l-amber-500 bg-card py-3 pl-4 pr-3">
       <div className="flex items-center gap-3">
-        <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+        <AlertTriangle className="h-5 w-5 shrink-0 text-warning" />
         <p className="text-base text-foreground">
           ERPNext is not connected. Some features require an active ERPNext instance.
         </p>

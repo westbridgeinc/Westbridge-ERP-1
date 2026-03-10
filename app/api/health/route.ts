@@ -77,9 +77,21 @@ function checkMemory(): CheckResult {
 }
 
 function checkDisk(): CheckResult {
-  // Node has no built-in disk check; approximate via /tmp statvfs via os module
-  // Real implementations use `df` or `statvfs`. Return healthy as a baseline.
-  return { status: "healthy", latency_ms: 0 };
+  try {
+    const { statfsSync } = require("fs");
+    const stat = statfsSync("/");
+    const totalBytes = stat.blocks * stat.bsize;
+    const freeBytes = stat.bfree * stat.bsize;
+    const usedPercent = Math.round(((totalBytes - freeBytes) / totalBytes) * 100);
+    return {
+      status: usedPercent > 95 ? "unhealthy" : usedPercent > 85 ? "degraded" : "healthy",
+      latency_ms: 0,
+      message: `${usedPercent}% used`,
+    };
+  } catch {
+    // statfsSync may not be available on all platforms
+    return { status: "healthy", latency_ms: 0, message: "check unavailable" };
+  }
 }
 
 /**

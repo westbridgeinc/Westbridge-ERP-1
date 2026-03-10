@@ -353,7 +353,7 @@ function SettingsContent() {
                     />
                     <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 text-success">
                           <Check className="h-4 w-4" />
                         </span>
                         <span className="text-sm text-muted-foreground">
@@ -659,7 +659,7 @@ function SettingsContent() {
                           {included ? (
                             <span className="text-sm text-muted-foreground">Included</span>
                           ) : isActive ? (
-                            <span className="text-sm text-emerald-500">Active</span>
+                            <span className="text-sm text-success">Active</span>
                           ) : (
                             <Button variant="secondary" size="sm" onClick={() => setModuleActivateConfirm({ name: m.name, id: m.id, price: 0 })}>Activate</Button>
                           )}

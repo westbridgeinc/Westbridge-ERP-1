@@ -23,7 +23,7 @@ export const RATE_LIMIT = {
 export const RATE_LIMIT_TIERS = {
   anonymous:    { requests: 20,   windowMs: 60_000 },
   starter:      { requests: 60,   windowMs: 60_000 },
-  professional: { requests: 200,  windowMs: 60_000 },
+  business:     { requests: 200,  windowMs: 60_000 },
   enterprise:   { requests: 1000, windowMs: 60_000 },
   api_key:      { requests: 500,  windowMs: 60_000 },
 } as const;
@@ -72,7 +72,7 @@ export const SECURITY = {
   SESSION_EXPIRY_DAYS: 7,
   IDLE_TIMEOUT_MINUTES: 30,
   MAX_CONCURRENT_SESSIONS: 5,
-  SESSION_CACHE_TTL_SEC: 5,
+  SESSION_CACHE_TTL_SEC: 30,
   MAX_BODY_BYTES: 1_048_576,
   WEBHOOK_CIRCUIT_BREAKER_THRESHOLD: 10,
   LOCKOUT_AFTER_FAILED_ATTEMPTS: 5,

@@ -137,7 +137,7 @@ export default function AdminJobsPage() {
                   <span className="ml-auto font-mono font-medium">{q.active}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                  <CheckCircle className="h-3.5 w-3.5 text-success" />
                   <span className="text-muted-foreground">Done</span>
                   <span className="ml-auto font-mono font-medium">{q.completed}</span>
                 </div>

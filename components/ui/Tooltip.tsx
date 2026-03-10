@@ -1,51 +1,33 @@
 "use client";
 
-import { useState, useRef, type ReactNode } from "react";
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "@/lib/utils";
 
-export interface TooltipProps {
-  content: string;
-  children: ReactNode;
-  side?: "top" | "bottom" | "left" | "right";
-}
+const TooltipProvider = TooltipPrimitive.Provider;
+const Tooltip = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
 
-export function Tooltip({ content, children, side = "top" }: TooltipProps) {
-  const [visible, setVisible] = useState(false);
-  const timeout = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const show = () => {
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(() => setVisible(true), 200);
-  };
-
-  const hide = () => {
-    clearTimeout(timeout.current);
-    setVisible(false);
-  };
-
-  const positionClass: Record<string, string> = {
-    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
-    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
-    left: "right-full top-1/2 -translate-y-1/2 mr-2",
-    right: "left-full top-1/2 -translate-y-1/2 ml-2",
-  };
-
+function TooltipContent({
+  className,
+  sideOffset = 4,
+  ref,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
   return (
-    <span
-      className="relative inline-flex"
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onFocus={show}
-      onBlur={hide}
-    >
-      {children}
-      {visible && (
-        <span
-          role="tooltip"
-          className={`absolute z-50 whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-md pointer-events-none ${positionClass[side]}`}
-        >
-          {content}
-        </span>
-      )}
-    </span>
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        data-slot="tooltip-content"
+        className={cn(
+          "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          className
+        )}
+        {...props}
+      />
+    </TooltipPrimitive.Portal>
   );
 }
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };

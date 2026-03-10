@@ -32,7 +32,7 @@ describe("Modal", () => {
         Content
       </Modal>
     );
-    fireEvent.click(screen.getByLabelText("Close"));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

@@ -13,7 +13,7 @@ export function BackgroundBeams({ className }: { className?: string }) {
           className="absolute h-[1px] w-full"
           style={{
             top: `${15 + i * 14}%`,
-            background: `linear-gradient(to right, transparent, hsl(var(--foreground) / ${0.06 + i * 0.02}), transparent)`,
+            background: `linear-gradient(to right, transparent, oklch(from var(--foreground) l c h / ${0.06 + i * 0.02}), transparent)`,
           }}
           initial={{ x: "-100%" }}
           animate={{ x: "100%" }}
@@ -28,7 +28,7 @@ export function BackgroundBeams({ className }: { className?: string }) {
       <div
         className="absolute inset-0 opacity-[0.015]"
         style={{
-          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(to right, var(--foreground) 1px, transparent 1px)`,
           backgroundSize: "80px 80px",
         }}
       />

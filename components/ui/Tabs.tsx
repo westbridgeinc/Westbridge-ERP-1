@@ -1,72 +1,63 @@
 "use client";
 
-import { useState, useCallback, useRef, type KeyboardEvent } from "react";
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { cn } from "@/lib/utils";
 
-export interface TabItem {
-  id: string;
-  label: string;
-}
+const Tabs = TabsPrimitive.Root;
 
-export interface TabsProps {
-  items: TabItem[];
-  activeId?: string;
-  defaultId?: string;
-  onChange?: (id: string) => void;
-  className?: string;
-}
-
-export function Tabs({ items, activeId, defaultId, onChange, className = "" }: TabsProps) {
-  const [internalId, setInternalId] = useState(defaultId ?? items[0]?.id ?? "");
-  const currentId = activeId ?? internalId;
-  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
-
-  const handleSelect = useCallback(
-    (id: string) => {
-      if (!activeId) setInternalId(id);
-      onChange?.(id);
-    },
-    [activeId, onChange]
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
-      let nextIndex = index;
-      if (e.key === "ArrowRight") nextIndex = (index + 1) % items.length;
-      else if (e.key === "ArrowLeft") nextIndex = (index - 1 + items.length) % items.length;
-      else if (e.key === "Home") nextIndex = 0;
-      else if (e.key === "End") nextIndex = items.length - 1;
-      else return;
-
-      e.preventDefault();
-      tabsRef.current[nextIndex]?.focus();
-      handleSelect(items[nextIndex].id);
-    },
-    [items, handleSelect]
-  );
-
+function TabsList({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
-    <div
-      role="tablist"
-      className={`inline-flex h-9 items-center rounded-lg bg-muted p-1 ${className}`}
-    >
-      {items.map((tab, i) => {
-        const isActive = tab.id === currentId;
-        return (
-          <button
-            key={tab.id}
-            ref={(el) => { tabsRef.current[i] = el; }}
-            role="tab"
-            type="button"
-            aria-selected={isActive}
-            tabIndex={isActive ? 0 : -1}
-            onClick={() => handleSelect(tab.id)}
-            onKeyDown={(e) => handleKeyDown(e, i)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${isActive ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
-    </div>
+    <TabsPrimitive.List
+      ref={ref}
+      data-slot="tabs-list"
+      className={cn(
+        "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
   );
 }
+
+function TabsTrigger({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      data-slot="tabs-trigger"
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function TabsContent({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  return (
+    <TabsPrimitive.Content
+      ref={ref}
+      data-slot="tabs-content"
+      className={cn(
+        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };

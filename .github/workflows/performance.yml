@@ -10,6 +10,12 @@ on:
       - 'lib/**'
       - 'load-tests/**'
 
+env:
+  POSTGRES_PASSWORD: postgres
+  MYSQL_ROOT_PASSWORD: root
+  REDIS_PASSWORD: changeme
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/westbridge
+
 jobs:
   load-test:
     name: Load Tests
@@ -17,18 +23,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm }
+
+      - run: npm ci
+
       - name: Start app stack
         run: docker compose up -d && sleep 60
 
       - name: Run migrations
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/westbridge_test
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Seed test data
         run: npx tsx scripts/seed-staging.ts
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/westbridge_test
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run smoke test
         uses: grafana/k6-action@v0.3.0

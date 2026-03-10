@@ -107,7 +107,7 @@ export function OnboardingChecklist({ checklistRef }: { checklistRef?: React.Ref
                 cy="22"
                 r="18"
                 fill="none"
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
                 strokeWidth="4"
               />
               <motion.circle
@@ -115,7 +115,7 @@ export function OnboardingChecklist({ checklistRef }: { checklistRef?: React.Ref
                 cy="22"
                 r="18"
                 fill="none"
-                stroke="hsl(var(--primary))"
+                stroke="var(--primary)"
                 strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={circumference}

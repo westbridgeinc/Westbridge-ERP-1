@@ -102,8 +102,8 @@ function InviteContent() {
       {success ? (
         <div className="text-center">
           <div className="mb-3 flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-              <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
+              <svg className="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -147,7 +147,7 @@ function InviteContent() {
                 <>
                   <ul className="mt-1 space-y-1 text-xs">
                     {pwResult.errors.length === 0 ? (
-                      <li className="text-emerald-500">\u2713 Password meets all requirements</li>
+                      <li className="text-success">\u2713 Password meets all requirements</li>
                     ) : (
                       pwResult.errors.map((e) => <li key={e} className="text-destructive">\u2717 {e}</li>)
                     )}
@@ -160,7 +160,7 @@ function InviteContent() {
                           key={i}
                           className={`h-1.5 flex-1 rounded-full transition-colors ${
                             i < passed
-                              ? passed === TOTAL_PW_REQUIREMENTS ? "bg-emerald-500" : passed >= 4 ? "bg-amber-400" : "bg-destructive"
+                              ? passed === TOTAL_PW_REQUIREMENTS ? "bg-success" : passed >= 4 ? "bg-warning" : "bg-destructive"
                               : "bg-border"
                           }`}
                         />

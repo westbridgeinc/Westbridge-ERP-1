@@ -84,7 +84,7 @@ function MetricCard({
       <p className="text-sm text-muted-foreground/60">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-foreground">
         {variant === "success" ? (
-          <span className="text-emerald-500">{formatCurrency(value, "USD")}</span>
+          <span className="text-success">{formatCurrency(value, "USD")}</span>
         ) : (
           formatCurrency(value, "USD")
         )}
@@ -260,7 +260,7 @@ export default function AccountingPage() {
   return (
     <div className="space-y-6">
       {header}
-      <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+      <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2.5 text-sm text-warning">
         <span className="shrink-0">⚠</span>
         <span>
           <strong>Sample data</strong> — financial figures shown here are illustrative. Full GL reconciliation will be available once ERP Journal Entry endpoints are connected.
@@ -292,14 +292,14 @@ export default function AccountingPage() {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
                 vertical={false}
               />
               <XAxis
                 dataKey="month"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground) / 0.6)" }}
+                tick={{ fontSize: 12, fill: "var(--muted-foreground) / 0.6)" }}
               />
               <YAxis
                 hide
@@ -307,21 +307,21 @@ export default function AccountingPage() {
               />
               <Tooltip
                 content={<ChartTooltip />}
-                cursor={{ fill: "hsl(var(--muted))" }}
+                cursor={{ fill: "var(--muted)" }}
               />
               <Legend
-                wrapperStyle={{ color: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                wrapperStyle={{ color: "var(--muted-foreground)", fontSize: 12 }}
               />
               <Bar
                 dataKey="revenue"
                 name="Revenue"
-                fill="hsl(var(--primary))"
+                fill="var(--primary)"
                 radius={[2, 2, 0, 0]}
               />
               <Bar
                 dataKey="expenses"
                 name="Expenses"
-                fill="hsl(var(--border))"
+                fill="var(--border)"
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>

@@ -50,8 +50,8 @@ export default function ForgotPasswordPage() {
         {sent ? (
           <div className="rounded-lg border border-border bg-card p-8 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
+                <svg className="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>

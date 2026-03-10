@@ -226,24 +226,17 @@ export function planToTier(plan: string | null | undefined): RateLimitTier {
 
 /**
  * Get the effective rate limit for a plan + operation combination.
- * Uses the RATE_LIMIT_TIERS constants so plan definitions live in one place.
+ * Uses RATE_LIMIT_TIERS and RATE_LIMIT_COST from constants as the single source of truth.
  */
 export function getPlanRateLimit(
   plan: string,
-  operation: keyof typeof import("@/lib/constants").RATE_LIMIT_COST = "default"
+  operation: string = "default"
 ): { limit: number; windowMs: number } {
-  // Import inline to avoid circular dep (constants → rate-limit-tiers → constants)
-  const PLAN_LIMITS: Record<string, { requests: number; windowMs: number }> = {
-    Starter:      { requests: 60,   windowMs: 60_000 },
-    Growth:       { requests: 200,  windowMs: 60_000 },
-    Business:     { requests: 1000, windowMs: 60_000 },
-  };
-  const COST: Record<string, number> = {
-    erp_list: 5, erp_doc: 2, erp_create: 3, ai_chat: 10, default: 1,
-  };
-
-  const tier = PLAN_LIMITS[plan] ?? PLAN_LIMITS["Starter"]!;
-  const cost = COST[operation] ?? 1;
+  // Use the canonical constants — import at call time to avoid circular dep.
+  const { RATE_LIMIT_TIERS, RATE_LIMIT_COST } = require("@/lib/constants");
+  const planKey = plan.toLowerCase() as keyof typeof RATE_LIMIT_TIERS;
+  const tier = RATE_LIMIT_TIERS[planKey] ?? RATE_LIMIT_TIERS.starter;
+  const cost = RATE_LIMIT_COST[operation as keyof typeof RATE_LIMIT_COST] ?? RATE_LIMIT_COST.default;
   return {
     limit: Math.floor(tier.requests / cost),
     windowMs: tier.windowMs,

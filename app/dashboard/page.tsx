@@ -79,7 +79,7 @@ function trendArrow(value: number): string {
 
 function activityDotColor(type: ActivityItem["type"]): string {
   switch (type) {
-    case "success": return "bg-green-500";
+    case "success": return "bg-success";
     case "error": return "bg-destructive";
     case "info": return "bg-primary";
     default: return "bg-muted-foreground";
@@ -188,7 +188,7 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">Here&apos;s what&apos;s happening at your account</p>
         </div>
         {erpStatus === "connected" && (
-          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
+          <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-xs font-medium text-success">
             ERP Connected
           </span>
         )}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
       <OnboardingChecklist checklistRef={checklistRef} />
 
       {data.isDemo && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+        <div className="mt-4 flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2.5 text-sm text-warning">
           <span className="shrink-0">⚠</span>
           <span>
             <strong>Sample data</strong> — your ERP is offline or not yet connected. These numbers are for illustration only.
@@ -223,7 +223,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold text-foreground">{formatCurrency(data.revenueMTD, "USD")}</p>
-            <p className={cn("mt-1 text-xs", data.revenueChange >= 0 ? "text-emerald-500" : "text-destructive")}>{trendArrow(data.revenueChange)}</p>
+            <p className={cn("mt-1 text-xs", data.revenueChange >= 0 ? "text-success" : "text-destructive")}>{trendArrow(data.revenueChange)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -233,7 +233,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold text-foreground">{data.employeeCount}</p>
-            <p className={cn("mt-1 text-xs", data.employeeDelta >= 0 ? "text-emerald-500" : "text-destructive")}>{data.employeeDelta !== 0 ? trendArrow(data.employeeDelta) : "No change"}</p>
+            <p className={cn("mt-1 text-xs", data.employeeDelta >= 0 ? "text-success" : "text-destructive")}>{data.employeeDelta !== 0 ? trendArrow(data.employeeDelta) : "No change"}</p>
           </CardContent>
         </Card>
         <Card>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold text-foreground">{data.outstandingCount} open</p>
-            <p className={cn("mt-1 text-xs", data.outstandingCount > 0 ? "text-destructive" : "text-emerald-500")}>{data.outstandingCount > 0 ? "Requires follow-up" : "All clear"}</p>
+            <p className={cn("mt-1 text-xs", data.outstandingCount > 0 ? "text-destructive" : "text-success")}>{data.outstandingCount > 0 ? "Requires follow-up" : "All clear"}</p>
           </CardContent>
         </Card>
         <Card>
@@ -266,8 +266,8 @@ export default function DashboardPage() {
             <AreaChart data={data.revenueData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
@@ -275,9 +275,9 @@ export default function DashboardPage() {
               <YAxis hide domain={[0, 4]} />
               <Tooltip
                 formatter={(value) => [value != null ? `${Number(value)}M` : "—", "Revenue"]}
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 6 }}
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6 }}
               />
-              <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#fillRevenue)" />
+              <Area type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} fill="url(#fillRevenue)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -28,13 +28,13 @@ export function PricingCards() {
           role="switch"
           aria-checked={annual}
           onClick={() => setAnnual((v) => !v)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${annual ? "bg-primary" : "bg-muted-foreground/30"}`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${annual ? "bg-primary" : "bg-muted"}`}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${annual ? "translate-x-6" : "translate-x-1"}`} />
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow transition-transform ${annual ? "translate-x-6" : "translate-x-1"}`} />
         </button>
         <span className={`text-sm font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}>
           Annual
-          <span className="ml-1.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+          <span className="ml-1.5 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
             Save 2 months
           </span>
         </span>
@@ -70,7 +70,7 @@ export function PricingCards() {
               </div>
               {annual
                 ? <p className="mt-1 text-xs text-muted-foreground/60">Billed annually — {formatCurrency(price * 12, "USD")}/yr</p>
-                : <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">{formatCurrency(plan.annualPricePerMonth, "USD")}/mo billed annually</p>
+                : <p className="mt-1 text-xs text-success">{formatCurrency(plan.annualPricePerMonth, "USD")}/mo billed annually</p>
               }
 
               {/* AI badge */}
@@ -88,7 +88,7 @@ export function PricingCards() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">Included modules</p>
                 {bundles.map((b) => (
                   <div key={b.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
+                    <Check className="h-3.5 w-3.5 flex-shrink-0 text-success" />
                     {b.name}
                   </div>
                 ))}
@@ -98,7 +98,7 @@ export function PricingCards() {
               <ul className="mt-5 flex-1 space-y-2 border-t border-border pt-4">
                 {plan.features.slice(2).map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
+                    <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-success" />
                     {f}
                   </li>
                 ))}

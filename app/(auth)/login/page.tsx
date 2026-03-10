@@ -119,7 +119,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
-                  className="h-11 rounded-md border-border focus-visible:ring-black"
+                  className="h-11 rounded-md border-border focus-visible:ring-ring"
                 />
               </div>
               <div className="space-y-2">
@@ -132,7 +132,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="h-11 rounded-md border-border focus-visible:ring-black"
+                    className="h-11 rounded-md border-border focus-visible:ring-ring"
                   />
                   <button
                     type="button"
@@ -160,7 +160,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-11 w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                className="h-11 w-full"
               >
                 {loading ? "Signing in…" : "Sign in"}
               </Button>

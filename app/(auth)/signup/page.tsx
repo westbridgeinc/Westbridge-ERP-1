@@ -164,7 +164,7 @@ function SignupContent() {
                 variant="default"
                 size="lg"
                 type="submit"
-                className="mt-6 h-11 w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 h-11 w-full"
                 disabled={!company.trim() || !industry}
               >
                 Continue
@@ -200,7 +200,7 @@ function SignupContent() {
               <Button variant="secondary" size="default" type="button" onClick={() => setStep(1)}>
                 Back
               </Button>
-              <Button variant="default" size="lg" type="button" className="h-11 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50" onClick={() => setStep(3)}>
+              <Button variant="default" size="lg" type="button" className="h-11 flex-1" onClick={() => setStep(3)}>
                 Continue
               </Button>
             </div>
@@ -254,7 +254,7 @@ function SignupContent() {
               <Button variant="secondary" size="default" type="button" onClick={() => setStep(2)}>
                 Back
               </Button>
-              <Button variant="default" size="lg" type="button" className="h-11 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50" onClick={() => setStep(4)}>
+              <Button variant="default" size="lg" type="button" className="h-11 flex-1" onClick={() => setStep(4)}>
                 Continue
               </Button>
             </div>
@@ -271,7 +271,7 @@ function SignupContent() {
                 </p>
                 <Link
                   href={ROUTES.login}
-                  className="mt-6 inline-block rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+                  className="mt-6 inline-block rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
                 >
                   Go to sign in
                 </Link>
@@ -371,7 +371,7 @@ function SignupContent() {
                         <>
                           <ul className="mt-2 space-y-1 text-xs">
                             {pwResult.errors.length === 0 ? (
-                              <li className="text-emerald-500">\u2713 Password meets all requirements</li>
+                              <li className="text-success">\u2713 Password meets all requirements</li>
                             ) : (
                               pwResult.errors.map((e) => (
                                 <li key={e} className="text-destructive">\u2717 {e}</li>
@@ -385,9 +385,9 @@ function SignupContent() {
                                 className={`h-1.5 flex-1 rounded-full transition-colors ${
                                   i < passed
                                     ? passed === TOTAL_PW_REQUIREMENTS
-                                      ? "bg-emerald-500"
+                                      ? "bg-success"
                                       : passed >= 4
-                                        ? "bg-amber-400"
+                                        ? "bg-warning"
                                         : "bg-destructive"
                                     : "bg-border"
                                 }`}
@@ -409,7 +409,7 @@ function SignupContent() {
                       !validateEmail(email) ||
                       !validatePassword(password).valid
                     }
-                    className="mt-6 h-11 w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-6 h-11 w-full"
                   >
                     {!csrfToken ? "Loading\u2026" : submitting ? "Setting up your workspace\u2026" : "Continue to payment (2Checkout)"}
                   </Button>

@@ -107,7 +107,7 @@ export default function ModulesPage() {
                 <span
                   className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     badge.included
-                      ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
+                      ? "bg-success/10 text-success"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >

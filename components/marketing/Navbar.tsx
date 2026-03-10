@@ -63,7 +63,7 @@ export function Navbar() {
           >
             Sign in
           </Link>
-          <Button asChild size="sm" className="rounded-md bg-primary text-primary-foreground">
+          <Button asChild size="sm">
             <Link href={ROUTES.signup}>Get Started</Link>
           </Button>
         </div>
@@ -125,7 +125,7 @@ export function Navbar() {
                     </Button>
                   </Link>
                   <Link href={ROUTES.signup} onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full justify-center bg-primary text-primary-foreground">
+                    <Button className="w-full justify-center">
                       Get Started
                     </Button>
                   </Link>

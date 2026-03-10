@@ -52,6 +52,10 @@ vi.mock("@/lib/logger", () => ({
 import { createSession, validateSession, revokeSession } from "./session.service";
 import { prisma } from "@/lib/data/prisma";
 
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeRequest(overrides: Record<string, string> = {}): Request {

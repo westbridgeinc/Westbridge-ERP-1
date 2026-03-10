@@ -74,9 +74,9 @@ export function ToastsProvider({ children }: { children: ReactNode }) {
     variant === "error"
       ? "bg-destructive"
       : variant === "success"
-        ? "bg-emerald-500"
+        ? "bg-success"
         : variant === "warning"
-          ? "bg-amber-500"
+          ? "bg-warning"
           : "bg-primary";
 
   return (
