@@ -74,7 +74,7 @@ export default function ProcurementPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Procurement</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Procurement</h1>
             <p className="text-sm text-muted-foreground">Purchase orders and suppliers</p>
           </div>
           <Button variant="primary">+ Create New</Button>

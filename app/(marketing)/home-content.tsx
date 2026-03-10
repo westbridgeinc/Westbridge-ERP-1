@@ -82,7 +82,7 @@ export function HomeContent() {
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Enterprise resource planning
           </p>
-          <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl lg:text-[56px]">
+          <h1 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl lg:text-[56px]">
             Run your business with clarity
           </h1>
           <p className="mt-6 max-w-xl mx-auto text-lg text-muted-foreground">
@@ -124,7 +124,7 @@ export function HomeContent() {
       {/* Features - Bento */}
       <section className="border-t border-border bg-background px-6 py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center font-serif text-3xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-center font-display text-3xl font-semibold tracking-tight text-foreground">
             Everything you need
           </h2>
           <div className="mt-12">
@@ -143,8 +143,8 @@ export function HomeContent() {
               { step: "3", title: "Operate", desc: "Run your entire business from one dashboard." },
             ].map((item) => (
               <div key={item.step} className="relative flex flex-col items-center text-center">
-                <span className="font-serif text-4xl font-semibold text-muted-foreground/80">{item.step}</span>
-                <h3 className="mt-2 font-serif text-xl font-semibold text-foreground">{item.title}</h3>
+                <span className="font-display text-4xl font-semibold text-muted-foreground/80">{item.step}</span>
+                <h3 className="mt-2 font-display text-xl font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
                 {item.step !== "3" && (
                   <div className="absolute left-[60%] top-8 hidden h-px w-[80%] bg-border md:block" aria-hidden />
@@ -165,7 +165,7 @@ export function HomeContent() {
       {/* Pricing */}
       <section className="border-t border-border bg-muted/20 px-6 py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center font-serif text-3xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-center font-display text-3xl font-semibold tracking-tight text-foreground">
             Simple, transparent pricing
           </h2>
           <p className="mt-3 text-center text-sm text-muted-foreground">
@@ -187,7 +187,7 @@ export function HomeContent() {
                     </span>
                   )}
                   <CardContent className="flex flex-1 flex-col p-6">
-                    <h3 className="font-serif text-xl font-semibold text-foreground">{plan.name}</h3>
+                    <h3 className="font-display text-xl font-semibold text-foreground">{plan.name}</h3>
                     <p className="mt-4 text-3xl font-bold text-foreground">
                       ${plan.pricePerMonth.toLocaleString()}
                       <span className="text-base font-normal text-muted-foreground">/mo</span>
@@ -214,7 +214,7 @@ export function HomeContent() {
       {/* Final CTA */}
       <section className="bg-primary px-6 py-20 text-primary-foreground">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-serif text-3xl font-semibold tracking-tight">
+          <h2 className="font-display text-3xl font-semibold tracking-tight">
             Ready to streamline your business?
           </h2>
           <Button asChild size="lg" className="mt-8 rounded-md bg-primary-foreground text-primary hover:bg-primary-foreground/90">

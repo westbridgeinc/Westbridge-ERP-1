@@ -43,7 +43,7 @@ export function BentoGrid({ cards, className }: BentoGridProps) {
               {card.icon}
             </div>
           )}
-          <h3 className="font-serif text-lg font-semibold tracking-tight text-foreground">
+          <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
             {card.title}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

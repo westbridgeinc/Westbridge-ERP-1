@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
             </div>
-            <h1 className="text-lg font-semibold text-foreground">Check your inbox</h1>
+            <h1 className="text-lg font-semibold text-foreground font-display">Check your inbox</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               If an account exists for <strong>{email}</strong>, we&apos;ve sent a reset link. Check your spam folder if it doesn&apos;t arrive within a minute.
             </p>
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <div className="rounded-lg border border-border bg-card p-8 shadow-sm">
-            <h1 className="text-xl font-semibold text-foreground">Forgot your password?</h1>
+            <h1 className="text-xl font-semibold text-foreground font-display">Forgot your password?</h1>
             <p className="mt-1 text-sm text-muted-foreground">Enter your email and we&apos;ll send a reset link.</p>
 
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>

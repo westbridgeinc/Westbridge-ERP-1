@@ -41,7 +41,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
         <Link href={ROUTES.home} className="inline-flex text-foreground hover:opacity-90">
-          <Logo variant="text" size="md" />
+          <Logo variant="full" size="sm" />
         </Link>
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
@@ -97,7 +97,7 @@ export function Navbar() {
               transition={{ type: "tween", duration: 0.2 }}
             >
               <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                <Logo variant="text" size="md" />
+                <Logo variant="full" size="sm" />
                 <button
                   type="button"
                   onClick={() => setMobileOpen(false)}

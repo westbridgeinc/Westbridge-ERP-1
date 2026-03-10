@@ -43,7 +43,7 @@ export default function AboutContent() {
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
           About Westbridge
         </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground">
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground font-display">
           Enterprise operations infrastructure for the Caribbean and emerging markets.
         </h1>
       </motion.div>
@@ -76,7 +76,7 @@ export default function AboutContent() {
 
       {/* What we believe */}
       <motion.div {...fadeUp} transition={{ delay: 0.14 }} className="mt-24">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">What we believe</h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground font-display">What we believe</h2>
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {BELIEFS.map((belief, i) => (
             <motion.div
@@ -94,7 +94,7 @@ export default function AboutContent() {
 
       {/* What's built in */}
       <motion.div {...fadeUp} transition={{ delay: 0.22 }} className="mt-24">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground font-display">
           What&apos;s built in
         </h2>
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
@@ -126,14 +126,14 @@ export default function AboutContent() {
       </motion.div>
 
       {/* CTA */}
-      <motion.div {...fadeUp} transition={{ delay: 0.3 }} className="mt-24 rounded-2xl bg-zinc-900 py-16 text-center text-white">
-        <h2 className="text-2xl font-semibold tracking-tight">Ready to get started?</h2>
-        <p className="mt-3 text-sm text-zinc-400">
+      <motion.div {...fadeUp} transition={{ delay: 0.3 }} className="mt-24 rounded-2xl bg-primary py-16 text-center text-primary-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight font-display">Ready to get started?</h2>
+        <p className="mt-3 text-sm text-primary-foreground/70">
           No credit card required. Up and running in minutes.
         </p>
         <Link
           href={ROUTES.signup}
-          className="mt-6 inline-block rounded-md bg-white px-6 py-2.5 text-sm font-medium text-zinc-900 transition hover:opacity-90"
+          className="mt-6 inline-block rounded-md bg-primary-foreground px-6 py-2.5 text-sm font-medium text-primary transition hover:opacity-90"
         >
           Start free trial
         </Link>

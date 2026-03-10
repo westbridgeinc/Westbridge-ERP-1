@@ -108,12 +108,12 @@ function InviteContent() {
               </svg>
             </div>
           </div>
-          <h1 className="text-lg font-semibold text-foreground">Account ready!</h1>
+          <h1 className="text-lg font-semibold text-foreground font-display">Account ready!</h1>
           <p className="mt-2 text-sm text-muted-foreground">Redirecting you to sign in&hellip;</p>
         </div>
       ) : (
         <>
-          <h1 className="text-xl font-semibold text-foreground">Join {inviteInfo?.companyName}</h1>
+          <h1 className="text-xl font-semibold text-foreground font-display">Join {inviteInfo?.companyName}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             You&apos;ve been invited as a <strong className="text-foreground">{inviteInfo?.role}</strong>. Set up your account below.
           </p>

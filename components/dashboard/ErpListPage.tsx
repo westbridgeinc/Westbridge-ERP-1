@@ -91,7 +91,7 @@ export function ErpListPage<T>({
     return (
       <div>
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
             {title}
           </h1>
           {createLabel && (
@@ -110,7 +110,7 @@ export function ErpListPage<T>({
   return (
     <div>
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         {createLabel && onCreateClick && (

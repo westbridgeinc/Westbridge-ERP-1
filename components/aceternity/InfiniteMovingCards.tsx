@@ -37,7 +37,7 @@ export function InfiniteMovingCards({ cards, className }: InfiniteMovingCardsPro
             key={i}
             className="flex h-[180px] w-[300px] shrink-0 flex-col justify-between rounded-xl border border-border bg-card p-6"
           >
-            <p className="font-serif text-base italic leading-relaxed text-foreground">
+            <p className="font-sans text-base italic leading-relaxed text-foreground">
               &ldquo;{card.quote}&rdquo;
             </p>
             <div>

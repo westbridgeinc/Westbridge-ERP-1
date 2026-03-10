@@ -135,7 +135,7 @@ export default function HRPage() {
   const header = (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">HR</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">HR</h1>
         <p className="text-sm text-muted-foreground">Employee directory and management</p>
       </div>
       <Button variant="primary">+ Create New</Button>

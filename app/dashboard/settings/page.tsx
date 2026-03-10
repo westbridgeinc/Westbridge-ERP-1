@@ -545,7 +545,7 @@ function SettingsContent() {
         {tab === "integrations" && (
           <div className="max-w-2xl space-y-8">
             <div>
-              <h2 className="font-serif text-lg font-semibold text-foreground">ERPNext connection</h2>
+              <h2 className="font-display text-lg font-semibold text-foreground">ERPNext connection</h2>
               <p className="mt-1 text-sm text-muted-foreground">Connect your ERPNext instance for sync and migration.</p>
               <div className="mt-4 flex items-center justify-between rounded-md border border-border bg-card p-4">
                 <div>
@@ -556,7 +556,7 @@ function SettingsContent() {
               </div>
             </div>
             <div>
-              <h2 className="font-serif text-lg font-semibold text-foreground">API keys</h2>
+              <h2 className="font-display text-lg font-semibold text-foreground">API keys</h2>
               <p className="mt-1 text-sm text-muted-foreground">Manage API keys for programmatic access.</p>
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{apiKeys.length} active key{apiKeys.length !== 1 ? "s" : ""}</span>

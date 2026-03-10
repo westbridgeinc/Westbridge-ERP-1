@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Analytics</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Analytics</h1>
             <p className="text-sm text-muted-foreground">Reports and business intelligence</p>
           </div>
           <Button variant="primary" className="pointer-events-none opacity-60">+ Create New</Button>
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Analytics</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Analytics</h1>
           <p className="text-sm text-muted-foreground">Reports and business intelligence</p>
         </div>
         <Button variant="primary" className="pointer-events-none opacity-60">+ Create New</Button>
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
 
       <Card>
         <CardContent className="p-6">
-          <p className="text-xl font-semibold text-foreground">Revenue Trend</p>
+          <p className="text-xl font-semibold text-foreground font-display">Revenue Trend</p>
           <p className="mt-0.5 text-sm text-muted-foreground">Last 12 months</p>
         <div className="mt-4 h-64 min-h-[256px] w-full">
           <ResponsiveContainer width="100%" height={256}>
@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">
-          <p className="text-xl font-semibold text-foreground">Top Customers by Revenue</p>
+          <p className="text-xl font-semibold text-foreground font-display">Top Customers by Revenue</p>
           <ul className="mt-4 space-y-3 text-base">
             {topCustomers.map((c, i) => (
               <li key={c.name} className="flex items-center justify-between">
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
         </Card>
         <Card>
           <CardContent className="p-6">
-          <p className="text-xl font-semibold text-foreground">Revenue by Category</p>
+          <p className="text-xl font-semibold text-foreground font-display">Revenue by Category</p>
           <div className="mt-4 h-48 min-h-[192px] w-full">
             <ResponsiveContainer width="100%" height={192}>
               <BarChart data={byCategory} layout="vertical" margin={{ top: 0, right: 0, left: 80, bottom: 0 }}>

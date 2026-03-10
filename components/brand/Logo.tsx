@@ -6,40 +6,52 @@ interface LogoProps {
   size?: "sm" | "md" | "lg";
 }
 
-const sizes = {
-  sm: { mark: "text-xl", text: "text-[8px]", sub: "text-[6px]", gap: "tracking-[0.15em]" },
-  md: { mark: "text-3xl", text: "text-[10px]", sub: "text-[7px]", gap: "tracking-[0.2em]" },
-  lg: { mark: "text-5xl", text: "text-xs", sub: "text-[8px]", gap: "tracking-[0.25em]" },
+const badgeSizes = {
+  sm: "h-6 w-6 text-xs",
+  md: "h-8 w-8 text-sm",
+  lg: "h-10 w-10 text-base",
+};
+
+const wordmarkSizes = {
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base",
 };
 
 export function Logo({ variant = "full", className = "", size = "md" }: LogoProps) {
-  const s = sizes[size];
-
   if (variant === "mark") {
     return (
-      <span className={`font-serif font-bold ${s.mark} ${className}`}>
-        WB
-      </span>
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground ${badgeSizes[size]} ${className}`}
+      >
+        W
+      </div>
     );
   }
 
   if (variant === "text") {
     return (
-      <span className={`font-sans font-medium ${s.gap} uppercase ${s.text} ${className}`}>
-        Westbridge
+      <span className={`font-semibold tracking-wide font-display uppercase ${wordmarkSizes[size]} ${className}`}>
+        WESTBRIDGE
       </span>
     );
   }
 
   return (
-    <div className={`flex flex-col items-center ${className}`}>
-      <span className={`font-serif font-bold leading-none ${s.mark}`}>WB</span>
-      <span className={`font-sans font-medium ${s.gap} uppercase ${s.text} mt-1`}>
-        Westbridge
-      </span>
-      <span className={`font-sans font-light ${s.gap} uppercase ${s.sub} mt-0.5 text-muted-foreground`}>
-        Inc.
-      </span>
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground ${badgeSizes[size]}`}
+      >
+        W
+      </div>
+      <div className="flex flex-col">
+        <span className={`font-semibold tracking-wide font-display uppercase leading-none ${wordmarkSizes[size]}`}>
+          WESTBRIDGE
+        </span>
+        <span className="mt-0.5 text-[9px] font-light uppercase tracking-widest text-muted-foreground">
+          Inc.
+        </span>
+      </div>
     </div>
   );
 }

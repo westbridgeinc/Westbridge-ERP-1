@@ -48,7 +48,7 @@ export default function ModulesPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground font-display md:text-4xl">
             Module catalog
           </h1>
           <p className="mt-2 text-base text-muted-foreground">
@@ -146,7 +146,7 @@ export default function ModulesPage() {
 
       {/* Bottom CTA */}
       <div className="mt-16 rounded-2xl border border-border bg-muted/40 px-8 py-10 text-center">
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="text-xl font-semibold text-foreground font-display">
           Need everything? Start with a full plan.
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">

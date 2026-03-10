@@ -81,12 +81,12 @@ function ResetPasswordContent() {
               </svg>
             </div>
           </div>
-          <h1 className="text-lg font-semibold text-foreground">Password updated</h1>
+          <h1 className="text-lg font-semibold text-foreground font-display">Password updated</h1>
           <p className="mt-2 text-sm text-muted-foreground">Redirecting you to sign in&hellip;</p>
         </div>
       ) : (
         <>
-          <h1 className="text-xl font-semibold text-foreground">Set new password</h1>
+          <h1 className="text-xl font-semibold text-foreground font-display">Set new password</h1>
           <p className="mt-1 text-sm text-muted-foreground">Choose a strong password for your account.</p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>

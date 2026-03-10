@@ -125,7 +125,7 @@ export function ErpDetailPage({
             </Link>
           </Button>
           <div className="min-w-0">
-            <h1 className="truncate font-serif text-2xl font-semibold tracking-tight text-foreground">
+            <h1 className="truncate font-display text-2xl font-semibold tracking-tight text-foreground">
               {title}
             </h1>
             <div className="mt-1 flex items-center gap-2">

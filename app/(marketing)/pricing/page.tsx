@@ -22,7 +22,7 @@ export const metadata = {
 export default function PricingPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
-      <h1 className="text-center text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+      <h1 className="text-center text-3xl font-semibold tracking-tight text-foreground font-display md:text-4xl">
         Simple, transparent pricing
       </h1>
       <p className="mt-3 text-center text-base text-muted-foreground">
