@@ -33,13 +33,18 @@ describe("constants", () => {
     expect(PAGINATION.DEFAULT_PER_PAGE).toBe(20);
     expect(PAGINATION.MAX_PER_PAGE).toBe(100);
   });
-  it("LOCALE has USD and timezone", () => {
-    expect(LOCALE.DEFAULT_CURRENCY).toBe("USD");
+  it("LOCALE defaults to GYD and Guyana timezone", () => {
+    expect(LOCALE.DEFAULT_CURRENCY).toBe("GYD");
     expect(LOCALE.DEFAULT_TIMEZONE).toBe("America/Guyana");
     expect(LOCALE.VAT_RATE_GUYANA).toBe(0.14);
   });
-  it("CURRENCY_CODES includes USD, EUR, GBP, CAD", () => {
+  it("CURRENCY_CODES includes Caribbean + international currencies", () => {
+    expect(CURRENCY_CODES).toContain("GYD");
     expect(CURRENCY_CODES).toContain("USD");
+    expect(CURRENCY_CODES).toContain("TTD");
+    expect(CURRENCY_CODES).toContain("BBD");
+    expect(CURRENCY_CODES).toContain("JMD");
+    expect(CURRENCY_CODES).toContain("XCD");
     expect(CURRENCY_CODES).toContain("EUR");
     expect(CURRENCY_CODES).toContain("GBP");
     expect(CURRENCY_CODES).toContain("CAD");
