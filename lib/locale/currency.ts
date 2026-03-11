@@ -1,11 +1,18 @@
 /**
- * Currency formatting. USD and major international currencies.
+ * Currency formatting — Caribbean-first, international-second.
+ *
+ * GYD is the default currency. All Caribbean currencies are first-class.
  */
 
 import type { CurrencyCode } from "@/lib/constants";
 
 const CURRENCY_DISPLAY: Record<CurrencyCode, { symbol: string; decimals: number }> = {
+  GYD: { symbol: "GY$", decimals: 2 },
   USD: { symbol: "$", decimals: 2 },
+  TTD: { symbol: "TT$", decimals: 2 },
+  BBD: { symbol: "BD$", decimals: 2 },
+  JMD: { symbol: "J$", decimals: 2 },
+  XCD: { symbol: "EC$", decimals: 2 },
   EUR: { symbol: "€", decimals: 2 },
   GBP: { symbol: "£", decimals: 2 },
   CAD: { symbol: "C$", decimals: 2 },
