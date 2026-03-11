@@ -17,6 +17,7 @@ import {
   NIS_CEILING,
   PAYE_THRESHOLD,
   PAYE_BANDS,
+  GRA_TIN_REGEX,
   type CaribbeanCurrency,
 } from "./constants";
 
@@ -159,6 +160,17 @@ export function calculateNetPay(grossMonthly: number): NetPayResult {
     totalDeductions,
     netTakeHome: round2(grossMonthly - totalDeductions),
   };
+}
+
+// ─── GRA TIN Validation ──────────────────────────────────────────────────────
+
+/**
+ * Validate a Guyana Revenue Authority Tax Identification Number (TIN).
+ * Strips hyphens and spaces, then checks for exactly 10 digits.
+ */
+export function validateGraTin(tin: string): { valid: boolean; normalized: string } {
+  const normalized = tin.replace(/[-\s]/g, "");
+  return { valid: GRA_TIN_REGEX.test(normalized), normalized };
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

@@ -8,15 +8,44 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+/**
+ * Fetch a CSRF token from the backend before performing a mutation.
+ * Caches the token for 5 minutes to avoid redundant round-trips.
+ */
+let csrfTokenCache: { token: string; expiresAt: number } | null = null;
+
+async function getCsrfToken(): Promise<string> {
+  if (csrfTokenCache && Date.now() < csrfTokenCache.expiresAt) {
+    return csrfTokenCache.token;
+  }
+  const res = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch CSRF token");
+  const body = (await res.json()) as { data?: { csrfToken?: string } };
+  const token = body.data?.csrfToken ?? "";
+  csrfTokenCache = { token, expiresAt: Date.now() + 5 * 60 * 1000 };
+  return token;
+}
+
+const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 async function request<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
+  const method = options?.method?.toUpperCase() ?? "GET";
+  const extraHeaders: Record<string, string> = {};
+
+  // Attach CSRF token on all mutation requests
+  if (MUTATION_METHODS.has(method)) {
+    extraHeaders["X-CSRF-Token"] = await getCsrfToken();
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...extraHeaders,
       ...(options?.headers ?? {}),
     },
   });

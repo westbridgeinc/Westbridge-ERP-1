@@ -16,6 +16,9 @@ export {
   PAYE_THRESHOLD,
   PAYE_BANDS,
   CARICOM_ORIGIN_COUNTRIES,
+  GRA_TIN_REGEX,
+  GRA_RETENTION_YEARS,
+  NIS_RETENTION_YEARS,
   type CaribbeanCurrency,
   type CaricomCountry,
 } from "./constants";
@@ -29,6 +32,7 @@ export {
   calculatePaye,
   calculatePayeFromMonthly,
   calculateNetPay,
+  validateGraTin,
   type VatResult,
   type NisResult,
   type PayeResult,

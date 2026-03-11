@@ -32,6 +32,9 @@ export const VAT_RATE = 0.14;
 /** Withholding tax on payments to non-residents */
 export const WITHHOLDING_TAX_RATE = 0.20;
 
+/** GRA TIN format: exactly 10 digits */
+export const GRA_TIN_REGEX = /^\d{10}$/;
+
 // ─── NIS (National Insurance Scheme — Guyana) ────────────────────────────────
 
 /** Employer's NIS contribution rate (8.8%) */
@@ -66,3 +69,11 @@ export const CARICOM_ORIGIN_COUNTRIES = [
 ] as const;
 
 export type CaricomCountry = (typeof CARICOM_ORIGIN_COUNTRIES)[number];
+
+// ─── Data Retention / Compliance ─────────────────────────────────────────────
+
+/** GRA requires 7-year retention of financial records */
+export const GRA_RETENTION_YEARS = 7;
+
+/** NIS records retention */
+export const NIS_RETENTION_YEARS = 7;
