@@ -41,6 +41,7 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken,

@@ -37,7 +37,7 @@ function InviteContent() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/csrf`)
+    fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setCsrfToken(d?.data?.token ?? ""))
       .catch(() => {});
@@ -45,7 +45,7 @@ function InviteContent() {
 
   useEffect(() => {
     if (!token) { setInviteError("Missing invite token."); setLoading(false); return; }
-    fetch(`${API_BASE}/api/invite?token=${encodeURIComponent(token)}`)
+    fetch(`${API_BASE}/api/invite?token=${encodeURIComponent(token)}`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
         if (!d.ok && d.error) { setInviteError(d.error.message ?? d.error ?? "Invalid invite"); return; }
@@ -66,6 +66,7 @@ function InviteContent() {
     try {
       const res = await fetch(`${API_BASE}/api/invite/accept`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         body: JSON.stringify({ token, name, password }),
       });

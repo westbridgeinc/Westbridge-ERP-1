@@ -99,12 +99,13 @@ function SidebarProfile({
   async function handleSignOut() {
     setOpen(false);
     try {
-      const csrfRes = await fetch(`${API_BASE}/api/csrf`);
+      const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
       const csrfData = await csrfRes.json().catch(() => ({}));
       const token = csrfData?.data?.token ?? csrfData?.token;
       if (token) {
         await fetch(`${API_BASE}/api/auth/logout`, {
           method: "POST",
+          credentials: "include",
           headers: { "X-CSRF-Token": token },
         });
       }

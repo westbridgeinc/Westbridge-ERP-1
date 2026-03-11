@@ -48,6 +48,7 @@ export function AIChatPanel({ module = "general" }: AIChatPanelProps) {
     try {
       const res = await fetch(`${API_BASE}/api/ai/chat`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msg, module, conversationId: convId }),
       });

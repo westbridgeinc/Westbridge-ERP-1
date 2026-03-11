@@ -127,7 +127,7 @@ function SettingsContent() {
       if (!dirty) return;
       setSaving(true);
       try {
-        const csrfRes = await fetch(`${API_BASE}/api/csrf`);
+        const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
         const csrfData = await csrfRes.json().catch(() => ({})) as { data?: { token?: string }; token?: string };
         const csrfToken = csrfData?.data?.token ?? csrfData?.token ?? "";
         const res = await fetch(`${API_BASE}/api/account/profile`, {
@@ -196,7 +196,7 @@ function SettingsContent() {
     if (!inviteEmail.trim()) return;
     setInviteSending(true);
     try {
-      const csrfRes = await fetch(`${API_BASE}/api/csrf`);
+      const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
       const csrfData = await csrfRes.json().catch(() => ({}));
       const csrfToken = csrfData?.data?.token ?? "";
       const res = await fetch(`${API_BASE}/api/invite`, {
@@ -246,7 +246,7 @@ function SettingsContent() {
     if (!pwValidation.valid) { setPwError(pwValidation.errors[0]); return; }
     setPwSaving(true);
     try {
-      const csrfRes = await fetch(`${API_BASE}/api/csrf`);
+      const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
       const csrfData = await csrfRes.json().catch(() => ({}));
       const csrfToken = csrfData?.data?.token ?? "";
       const res = await fetch(`${API_BASE}/api/auth/change-password`, {

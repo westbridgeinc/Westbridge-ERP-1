@@ -58,6 +58,7 @@ export interface ErpListParams {
   page?: number;
   orderBy?: string;
   filters?: Record<string, unknown>[];
+  fields?: string[];
 }
 
 export interface ErpListResponse {
@@ -71,6 +72,7 @@ async function erpList(doctype: string, params?: ErpListParams): Promise<ErpList
   if (params?.page != null) qs.set("page", String(params.page));
   if (params?.orderBy) qs.set("order_by", params.orderBy);
   if (params?.filters) qs.set("filters", JSON.stringify(params.filters));
+  if (params?.fields) qs.set("fields", JSON.stringify(params.fields));
   const res = await fetch(`${API_BASE}/api/erp/list?${qs.toString()}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json" },

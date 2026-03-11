@@ -164,7 +164,7 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/erp/dashboard`);
+      const res = await fetch(`${API_BASE}/api/erp/dashboard`, { credentials: "include" });
       if (!res.ok) {
         setNotifications([]);
         return;

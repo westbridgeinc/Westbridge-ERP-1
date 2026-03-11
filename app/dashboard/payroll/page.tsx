@@ -1,9 +1,8 @@
 "use client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { DollarSign } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -16,6 +15,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency } from "@/lib/locale/currency";
 import { formatDate } from "@/lib/locale/date";
 import { AIChatPanel } from "@/components/ai/AIChatPanel";
+import { useErpList } from "@/lib/queries/useErpList";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -24,7 +24,7 @@ import { AIChatPanel } from "@/components/ai/AIChatPanel";
 interface PayrollRecord {
   id: string;
   employee: string;
-  period: string;        // ISO date or display string
+  period: string;
   grossPay: number;
   deductions: number;
   netPay: number;
@@ -39,8 +39,23 @@ interface PayrollStats {
 }
 
 /* ------------------------------------------------------------------ */
-/*  No local demo data — real data comes from /api/erp/list            */
+/*  Mapper & Stats                                                     */
 /* ------------------------------------------------------------------ */
+
+function mapErpSalarySlip(r: Record<string, unknown>, i: number): PayrollRecord {
+  const docstatus = Number(r.docstatus ?? 0);
+  const status: PayrollRecord["status"] =
+    docstatus === 1 ? "Processed" : docstatus === 2 ? "Rejected" : "Pending";
+  return {
+    id: String(r.name ?? `PAY-${i}`),
+    employee: String(r.employee_name ?? r.name ?? ""),
+    period: String(r.start_date ?? ""),
+    grossPay: Number(r.gross_pay ?? 0),
+    deductions: Number(r.total_deduction ?? 0),
+    netPay: Number(r.net_pay ?? 0),
+    status,
+  };
+}
 
 function deriveStats(records: PayrollRecord[]): PayrollStats {
   return records.reduce(
@@ -62,46 +77,34 @@ const columns: Column<PayrollRecord>[] = [
   {
     id: "employee",
     header: "Employee",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">{row.employee}</span>
-    ),
+    accessor: (row) => <span className="font-medium text-foreground">{row.employee}</span>,
     sortValue: (row) => row.employee,
   },
   {
     id: "period",
     header: "Period",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{formatDate(row.period)}</span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground">{formatDate(row.period)}</span>,
     sortValue: (row) => row.period,
   },
   {
     id: "grossPay",
     header: "Gross Pay",
     align: "right",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{formatCurrency(row.grossPay)}</span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground">{formatCurrency(row.grossPay)}</span>,
     sortValue: (row) => row.grossPay,
   },
   {
     id: "deductions",
     header: "Deductions",
     align: "right",
-    accessor: (row) => (
-      <span className="text-muted-foreground/60">{formatCurrency(row.deductions)}</span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground/60">{formatCurrency(row.deductions)}</span>,
     sortValue: (row) => row.deductions,
   },
   {
     id: "netPay",
     header: "Net Pay",
     align: "right",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">
-        {formatCurrency(row.netPay)}
-      </span>
-    ),
+    accessor: (row) => <span className="font-medium text-foreground">{formatCurrency(row.netPay)}</span>,
     sortValue: (row) => row.netPay,
   },
   {
@@ -117,49 +120,26 @@ const columns: Column<PayrollRecord>[] = [
 /* ------------------------------------------------------------------ */
 
 export default function PayrollPage() {
-  const [records, setRecords] = useState<PayrollRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const {
+    data: rawList = [],
+    hasMore,
+    page: currentPage,
+    isLoading: loading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useErpList("Salary Slip", {
+    page,
+    limit: 100,
+    fields: ["name", "employee_name", "start_date", "gross_pay", "total_deduction", "net_pay", "docstatus"],
+  });
 
-  const fetchPayroll = async (signal: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/erp/list?doctype=Salary+Slip&limit_page_length=100&fields=["name","employee_name","start_date","gross_pay","total_deduction","net_pay","docstatus"]`,
-        { signal }
-      );
-      if (!res.ok) { setRecords([]); return; }
-      const json = await res.json();
-      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-      const mapped: PayrollRecord[] = raw.map((r, i) => {
-        const docstatus = Number(r.docstatus ?? 0);
-        const status: PayrollRecord["status"] =
-          docstatus === 1 ? "Processed" : docstatus === 2 ? "Rejected" : "Pending";
-        return {
-          id: String(r.name ?? `PAY-${i}`),
-          employee: String(r.employee_name ?? r.name ?? ""),
-          period: String(r.start_date ?? ""),
-          grossPay: Number(r.gross_pay ?? 0),
-          deductions: Number(r.total_deduction ?? 0),
-          netPay: Number(r.net_pay ?? 0),
-          status,
-        };
-      });
-      setRecords(mapped);
-    } catch {
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchPayroll(controller.signal);
-    return () => controller.abort();
-  }, []);
-
+  const records = useMemo(
+    () => (rawList as Record<string, unknown>[]).map(mapErpSalarySlip),
+    [rawList],
+  );
+  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load payroll data." : null;
   const stats = useMemo(() => deriveStats(records), [records]);
 
   const header = (
@@ -179,8 +159,12 @@ export default function PayrollPage() {
         {header}
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={() => fetchPayroll(new AbortController().signal)}>Retry</Button>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <DollarSign className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Something went wrong</p>
+            <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+            <Button variant="primary" size="sm" onClick={() => refetch()}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -219,22 +203,33 @@ export default function PayrollPage() {
       <Card>
         <CardContent className="p-0">
           <DataTable<PayrollRecord>
-        columns={columns}
-        data={records}
-        keyExtractor={(r) => r.id}
-        loading={false}
-        emptyState={
-          <EmptyState
-            icon={<DollarSign className="h-6 w-6" />}
-            title={MODULE_EMPTY_STATES.payroll.title}
-            description={MODULE_EMPTY_STATES.payroll.description}
-            actionLabel={MODULE_EMPTY_STATES.payroll.actionLabel}
-            actionHref={MODULE_EMPTY_STATES.payroll.actionLink}
-            supportLine={EMPTY_STATE_SUPPORT_LINE}
+            columns={columns}
+            data={records}
+            keyExtractor={(r) => r.id}
+            loading={false}
+            emptyState={
+              <EmptyState
+                icon={<DollarSign className="h-6 w-6" />}
+                title={MODULE_EMPTY_STATES.payroll.title}
+                description={MODULE_EMPTY_STATES.payroll.description}
+                actionLabel={MODULE_EMPTY_STATES.payroll.actionLabel}
+                actionHref={MODULE_EMPTY_STATES.payroll.actionLink}
+                supportLine={EMPTY_STATE_SUPPORT_LINE}
+              />
+            }
+            pageSize={20}
           />
-        }
-        pageSize={20}
-          />
+          <div className="flex items-center justify-between border-t border-border px-4 py-2">
+            <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage((p) => p - 1)}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <AIChatPanel module="hr" />

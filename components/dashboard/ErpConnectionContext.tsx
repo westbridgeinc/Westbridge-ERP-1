@@ -21,7 +21,7 @@ export function ErpConnectionProvider({ children }: { children: ReactNode }) {
 
   const checkConnection = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/erp/list?doctype=Company&limit_page_length=1`);
+      const res = await fetch(`${API_BASE}/api/erp/list?doctype=Company&limit_page_length=1`, { credentials: "include" });
       setConnected(res.ok);
     } catch {
       setConnected(false);

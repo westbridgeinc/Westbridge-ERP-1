@@ -26,7 +26,7 @@ function ResetPasswordContent() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/csrf`)
+    fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setCsrfToken(d?.data?.token ?? ""))
       .catch(() => {});
@@ -43,6 +43,7 @@ function ResetPasswordContent() {
     try {
       const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         body: JSON.stringify({ token, password }),
       });

@@ -102,7 +102,7 @@ export default function CRMPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE}/api/erp/list?doctype=Opportunity`)
+    fetch(`${API_BASE}/api/erp/list?doctype=Opportunity`, { credentials: "include" })
       .then((res) => {
         if (res.status === 401) {
           throw new Error("Session expired. Please sign in again.");

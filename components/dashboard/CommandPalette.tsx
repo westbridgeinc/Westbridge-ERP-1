@@ -125,7 +125,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           RECORD_DOCTYPES.map(async ({ doctype, label, hrefBase }) => {
             const res = await fetch(
               `${API_BASE}/api/erp/list?doctype=${encodeURIComponent(doctype)}&limit=5&filters=${encodeURIComponent(filters)}`,
-              { signal: recordAbortRef.current?.signal }
+              { signal: recordAbortRef.current?.signal, credentials: "include" }
             );
             if (!res.ok) return;
             const json = await res.json().catch(() => ({}));

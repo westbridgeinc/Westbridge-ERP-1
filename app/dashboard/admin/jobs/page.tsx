@@ -52,7 +52,7 @@ export default function AdminJobsPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/jobs`);
+      const res = await fetch(`${API_BASE}/api/admin/jobs`, { credentials: "include" });
       if (!res.ok) {
         if (res.status === 403) {
           toast.error("Admin access required to view job queues.");
@@ -78,7 +78,7 @@ export default function AdminJobsPage() {
   async function retryJob(jobId: string, queueName: string) {
     setRetrying(jobId);
     try {
-      const res = await fetch(`${API_BASE}/api/admin/jobs/${jobId}/retry?queue=${queueName}`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/api/admin/jobs/${jobId}/retry?queue=${queueName}`, { method: "POST", credentials: "include" });
       if (!res.ok) throw new Error("Retry failed");
       toast.success(`Job ${jobId} queued for retry`);
       await fetchStats();

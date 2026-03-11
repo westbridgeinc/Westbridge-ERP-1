@@ -1,9 +1,8 @@
 "use client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { UserCog } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
@@ -16,6 +15,7 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/locale/date";
 import { AIChatPanel } from "@/components/ai/AIChatPanel";
+import { useErpList } from "@/lib/queries/useErpList";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -27,7 +27,7 @@ interface Employee {
   designation: string;
   department: string;
   status: "Active" | "Inactive";
-  dateJoined: string; // ISO date
+  dateJoined: string;
 }
 
 interface HRStats {
@@ -37,8 +37,19 @@ interface HRStats {
 }
 
 /* ------------------------------------------------------------------ */
-/*  No local demo data — real data comes from /api/erp/list            */
+/*  Mapper & Stats                                                     */
 /* ------------------------------------------------------------------ */
+
+function mapErpEmployee(r: Record<string, unknown>, i: number): Employee {
+  return {
+    id: String(r.name ?? `EMP-${i}`),
+    name: String(r.employee_name ?? r.name ?? ""),
+    designation: String(r.designation ?? "\u2014"),
+    department: String(r.department ?? "\u2014"),
+    status: String(r.status ?? "") === "Active" ? "Active" : "Inactive",
+    dateJoined: String(r.date_of_joining ?? ""),
+  };
+}
 
 function deriveStats(employees: Employee[]): HRStats {
   const active = employees.filter((e) => e.status === "Active").length;
@@ -96,43 +107,26 @@ const columns: Column<Employee>[] = [
 
 export default function HRPage() {
   const router = useRouter();
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const {
+    data: rawList = [],
+    hasMore,
+    page: currentPage,
+    isLoading: loading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useErpList("Employee", {
+    page,
+    limit: 100,
+    fields: ["name", "employee_name", "designation", "department", "status", "date_of_joining"],
+  });
 
-  const fetchEmployees = async (signal: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/erp/list?doctype=Employee&limit_page_length=100&fields=["name","employee_name","designation","department","status","date_of_joining"]`,
-        { signal }
-      );
-      if (!res.ok) { setEmployees([]); return; }
-      const json = await res.json();
-      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-      const mapped: Employee[] = raw.map((r, i) => ({
-        id: String(r.name ?? `EMP-${i}`),
-        name: String(r.employee_name ?? r.name ?? ""),
-        designation: String(r.designation ?? "—"),
-        department: String(r.department ?? "—"),
-        status: String(r.status ?? "") === "Active" ? "Active" : "Inactive",
-        dateJoined: String(r.date_of_joining ?? ""),
-      }));
-      setEmployees(mapped);
-    } catch {
-      setEmployees([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchEmployees(controller.signal);
-    return () => controller.abort();
-  }, []);
-
+  const employees = useMemo(
+    () => (rawList as Record<string, unknown>[]).map(mapErpEmployee),
+    [rawList],
+  );
+  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load employees." : null;
   const stats = useMemo(() => deriveStats(employees), [employees]);
 
   const header = (
@@ -152,8 +146,12 @@ export default function HRPage() {
         {header}
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={() => fetchEmployees(new AbortController().signal)}>Retry</Button>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <UserCog className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Something went wrong</p>
+            <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+            <Button variant="primary" size="sm" onClick={() => refetch()}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -191,23 +189,34 @@ export default function HRPage() {
       <Card>
         <CardContent className="p-0">
           <DataTable<Employee>
-        columns={columns}
-        data={employees}
-        keyExtractor={(r) => r.id}
-        onRowClick={(record) => router.push(`/dashboard/hr/${encodeURIComponent(record.id)}`)}
-        loading={false}
-        emptyState={
-          <EmptyState
-            icon={<UserCog className="h-6 w-6" />}
-            title={MODULE_EMPTY_STATES.hr.title}
-            description={MODULE_EMPTY_STATES.hr.description}
-            actionLabel={MODULE_EMPTY_STATES.hr.actionLabel}
-            actionHref={MODULE_EMPTY_STATES.hr.actionLink}
-            supportLine={EMPTY_STATE_SUPPORT_LINE}
+            columns={columns}
+            data={employees}
+            keyExtractor={(r) => r.id}
+            onRowClick={(record) => router.push(`/dashboard/hr/${encodeURIComponent(record.id)}`)}
+            loading={false}
+            emptyState={
+              <EmptyState
+                icon={<UserCog className="h-6 w-6" />}
+                title={MODULE_EMPTY_STATES.hr.title}
+                description={MODULE_EMPTY_STATES.hr.description}
+                actionLabel={MODULE_EMPTY_STATES.hr.actionLabel}
+                actionHref={MODULE_EMPTY_STATES.hr.actionLink}
+                supportLine={EMPTY_STATE_SUPPORT_LINE}
+              />
+            }
+            pageSize={20}
           />
-        }
-        pageSize={20}
-          />
+          <div className="flex items-center justify-between border-t border-border px-4 py-2">
+            <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage((p) => p - 1)}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <AIChatPanel module="hr" />

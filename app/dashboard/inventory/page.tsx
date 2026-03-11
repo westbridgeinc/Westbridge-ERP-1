@@ -1,9 +1,8 @@
 "use client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
@@ -16,6 +15,7 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency } from "@/lib/locale/currency";
 import { AIChatPanel } from "@/components/ai/AIChatPanel";
+import { useErpList } from "@/lib/queries/useErpList";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -39,7 +39,7 @@ interface InventoryStats {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Badge variant mapping for inventory-specific statuses              */
+/*  Badge variant mapping                                              */
 /* ------------------------------------------------------------------ */
 
 function inventoryBadgeVariant(status: string): "success" | "warning" | "destructive" {
@@ -49,8 +49,21 @@ function inventoryBadgeVariant(status: string): "success" | "warning" | "destruc
 }
 
 /* ------------------------------------------------------------------ */
-/*  No local demo data — real data comes from /api/erp/list            */
+/*  Mapper & Stats                                                     */
 /* ------------------------------------------------------------------ */
+
+function mapErpItem(r: Record<string, unknown>, i: number): InventoryItem {
+  const qty = Number(r.total_projected_qty ?? 0);
+  return {
+    id: String(r.name ?? `ITM-${i}`),
+    item: String(r.item_name ?? r.name ?? ""),
+    warehouse: String(r.default_warehouse ?? "\u2014"),
+    qty,
+    value: Number(r.valuation_rate ?? 0) * qty,
+    uom: String(r.stock_uom ?? ""),
+    status: qty <= 0 ? "Out of Stock" : qty < 10 ? "Low Stock" : "In Stock",
+  };
+}
 
 function deriveStats(items: InventoryItem[]): InventoryStats {
   return items.reduce(
@@ -72,57 +85,40 @@ const columns: Column<InventoryItem>[] = [
   {
     id: "item",
     header: "Item",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">{row.item}</span>
-    ),
+    accessor: (row) => <span className="font-medium text-foreground">{row.item}</span>,
     sortValue: (row) => row.item,
   },
   {
     id: "warehouse",
     header: "Warehouse",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{row.warehouse}</span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground">{row.warehouse}</span>,
     sortValue: (row) => row.warehouse,
   },
   {
     id: "qty",
     header: "Qty",
     align: "right",
-    accessor: (row) => (
-      <span className="text-muted-foreground">
-        {row.qty.toLocaleString()}
-      </span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground">{row.qty.toLocaleString()}</span>,
     sortValue: (row) => row.qty,
   },
   {
     id: "value",
     header: "Value",
     align: "right",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">
-        {formatCurrency(row.value)}
-      </span>
-    ),
+    accessor: (row) => <span className="font-medium text-foreground">{formatCurrency(row.value)}</span>,
     sortValue: (row) => row.value,
   },
   {
     id: "uom",
     header: "UOM",
-    accessor: (row) => (
-      <span className="text-muted-foreground/60">{row.uom}</span>
-    ),
+    accessor: (row) => <span className="text-muted-foreground/60">{row.uom}</span>,
     sortValue: (row) => row.uom,
   },
   {
     id: "status",
     header: "Status",
-    accessor: (row) => (
-      <Badge variant={inventoryBadgeVariant(row.status)}>{row.status}</Badge>
-    ),
-    sortValue: (row) =>
-      row.status === "Out of Stock" ? 0 : row.status === "Low Stock" ? 1 : 2,
+    accessor: (row) => <Badge variant={inventoryBadgeVariant(row.status)}>{row.status}</Badge>,
+    sortValue: (row) => row.status === "Out of Stock" ? 0 : row.status === "Low Stock" ? 1 : 2,
   },
 ];
 
@@ -132,45 +128,22 @@ const columns: Column<InventoryItem>[] = [
 
 export default function InventoryPage() {
   const router = useRouter();
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const {
+    data: rawList = [],
+    hasMore,
+    page: currentPage,
+    isLoading: loading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useErpList("Item", { page, limit: 100 });
 
-  const fetchInventory = async (signal: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/erp/list?doctype=Item&limit_page_length=100`, { signal });
-      if (!res.ok) { setItems([]); return; }
-      const json = await res.json();
-      const raw: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
-      const mapped: InventoryItem[] = raw.map((r, i) => ({
-        id: String(r.name ?? `ITM-${i}`),
-        item: String(r.item_name ?? r.name ?? ""),
-        warehouse: String(r.default_warehouse ?? "—"),
-        qty: Number(r.total_projected_qty ?? 0),
-        value: Number(r.valuation_rate ?? 0) * Number(r.total_projected_qty ?? 0),
-        uom: String(r.stock_uom ?? ""),
-        status: Number(r.total_projected_qty ?? 0) <= 0
-          ? "Out of Stock"
-          : Number(r.total_projected_qty ?? 0) < 10
-          ? "Low Stock"
-          : "In Stock",
-      }));
-      setItems(mapped);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchInventory(controller.signal);
-    return () => controller.abort();
-  }, []);
-
+  const items = useMemo(
+    () => (rawList as Record<string, unknown>[]).map(mapErpItem),
+    [rawList],
+  );
+  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load inventory." : null;
   const stats = useMemo(() => deriveStats(items), [items]);
 
   const header = (
@@ -190,8 +163,12 @@ export default function InventoryPage() {
         {header}
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" size="sm" onClick={() => fetchInventory(new AbortController().signal)}>Retry</Button>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <Package className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Something went wrong</p>
+            <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+            <Button variant="primary" size="sm" onClick={() => refetch()}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -230,23 +207,34 @@ export default function InventoryPage() {
       <Card>
         <CardContent className="p-0">
           <DataTable<InventoryItem>
-        columns={columns}
-        data={items}
-        keyExtractor={(r) => r.id}
-        onRowClick={(record) => router.push(`/dashboard/inventory/${encodeURIComponent(record.id)}`)}
-        loading={false}
-        emptyState={
-          <EmptyState
-            icon={<Package className="h-6 w-6" />}
-            title={MODULE_EMPTY_STATES.inventory.title}
-            description={MODULE_EMPTY_STATES.inventory.description}
-            actionLabel={MODULE_EMPTY_STATES.inventory.actionLabel}
-            actionHref={MODULE_EMPTY_STATES.inventory.actionLink}
-            supportLine={EMPTY_STATE_SUPPORT_LINE}
+            columns={columns}
+            data={items}
+            keyExtractor={(r) => r.id}
+            onRowClick={(record) => router.push(`/dashboard/inventory/${encodeURIComponent(record.id)}`)}
+            loading={false}
+            emptyState={
+              <EmptyState
+                icon={<Package className="h-6 w-6" />}
+                title={MODULE_EMPTY_STATES.inventory.title}
+                description={MODULE_EMPTY_STATES.inventory.description}
+                actionLabel={MODULE_EMPTY_STATES.inventory.actionLabel}
+                actionHref={MODULE_EMPTY_STATES.inventory.actionLink}
+                supportLine={EMPTY_STATE_SUPPORT_LINE}
+              />
+            }
+            pageSize={20}
           />
-        }
-        pageSize={20}
-          />
+          <div className="flex items-center justify-between border-t border-border px-4 py-2">
+            <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage((p) => p - 1)}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <AIChatPanel module="inventory" />

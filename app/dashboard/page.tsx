@@ -58,7 +58,7 @@ interface DashboardData {
 }
 
 async function fetchDashboardData(): Promise<DashboardData> {
-  const res = await fetch(`${API_BASE}/api/erp/dashboard`);
+  const res = await fetch(`${API_BASE}/api/erp/dashboard`, { credentials: "include" });
   if (!res.ok) {
     throw new Error(res.status === 401 ? "Session expired. Please sign in again." : "Failed to load dashboard data.");
   }
@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     function checkErp() {
-      fetch(`${API_BASE}/api/health/ready`, { cache: "no-store" })
+      fetch(`${API_BASE}/api/health/ready`, { cache: "no-store", credentials: "include" })
         .then((r) => setErpStatus(r.ok ? "connected" : "error"))
         .catch(() => setErpStatus("error"));
     }

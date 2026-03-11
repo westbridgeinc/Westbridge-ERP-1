@@ -1,9 +1,8 @@
 "use client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +15,7 @@ import { formatCurrency } from "@/lib/locale/currency";
 import { FileBarChart } from "lucide-react";
 import { formatDateLong } from "@/lib/locale/date";
 import { AIChatPanel } from "@/components/ai/AIChatPanel";
+import { useErpList } from "@/lib/queries/useErpList";
 
 interface QuotationRow {
   id: string;
@@ -25,8 +25,18 @@ interface QuotationRow {
   status: string;
 }
 
+function mapErpQuotation(d: Record<string, unknown>): QuotationRow {
+  return {
+    id: String(d.name ?? ""),
+    customer: String(d.party_name ?? d.customer_name ?? "\u2014"),
+    amount: Number(d.grand_total ?? d.net_total ?? 0),
+    validUntil: String(d.valid_till ?? ""),
+    status: String(d.status ?? d.docstatus === 1 ? "Submitted" : "Draft").trim(),
+  };
+}
+
 function fmtDate(d: string): string {
-  if (!d) return "—";
+  if (!d) return "\u2014";
   try { return formatDateLong(d); } catch { return d; }
 }
 
@@ -40,25 +50,10 @@ const columns: Column<QuotationRow>[] = [
 
 export default function QuotationsPage() {
   const router = useRouter();
-  const [data, setData] = useState<QuotationRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(() => {
-    fetch(`${API_BASE}/api/erp/list?doctype=Quotation`)
-      .then((res) => { if (!res.ok) throw new Error(res.status === 401 ? "Session expired. Please sign in again." : "Failed to load quotations."); return res.json(); })
-      .then((json) => { const raw = (json?.data ?? []) as QuotationRow[]; setData(raw); setError(null); })
-      .catch((err: Error) => { setError(err.message); setData([]); })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const [page, setPage] = useState(0);
+  const { data: rawList = [], hasMore, page: currentPage, isLoading: loading, isError, error: queryError, refetch } = useErpList("Quotation", { page });
+  const data = useMemo(() => (rawList as Record<string, unknown>[]).map(mapErpQuotation), [rawList]);
+  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load quotations." : null;
 
   if (error) {
     return (
@@ -72,8 +67,12 @@ export default function QuotationsPage() {
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-destructive">{error}</p>
-            <Button variant="outline" size="sm" onClick={load} className="mt-4">Retry</Button>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <FileBarChart className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Something went wrong</p>
+            <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+            <Button variant="primary" size="sm" className="mt-4" onClick={() => refetch()}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -110,6 +109,17 @@ export default function QuotationsPage() {
               pageSize={20}
             />
           )}
+          <div className="flex items-center justify-between border-t border-border px-4 py-2">
+            <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage((p) => p - 1)}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <AIChatPanel module="crm" />

@@ -56,7 +56,7 @@ function SignupContent() {
   const returnFromPayment = searchParams.get("success") === "true";
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/csrf`)
+    fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
       .then((r) => r.json())
       .then((d: { data?: { token?: string }; token?: string }) => setCsrfToken(d.data?.token ?? d.token ?? null))
       .catch(() => setCsrfToken(null));
@@ -284,6 +284,7 @@ function SignupContent() {
                     try {
                       const res = await fetch(`${API_BASE}/api/signup`, {
                         method: "POST",
+                        credentials: "include",
                         headers: {
                           "Content-Type": "application/json",
                           "X-CSRF-Token": csrfToken,

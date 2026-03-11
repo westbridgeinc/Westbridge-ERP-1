@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/csrf`)
+    fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setCsrfToken(d?.data?.token ?? ""))
       .catch(() => {});
@@ -30,6 +30,7 @@ export default function ForgotPasswordPage() {
     try {
       await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         body: JSON.stringify({ email }),
       });
