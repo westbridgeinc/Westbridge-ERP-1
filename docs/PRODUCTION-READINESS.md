@@ -14,7 +14,7 @@
 | **Validation** | **Zod** schemas for auth (login/signup), ERP doc create, and API meta/error; request bodies validated in API routes; 400 + message on validation failure. |
 | **Errors** | Root and dashboard error boundaries; global error fallback. **Error reporter** (`lib/reporter.ts`) calls **Sentry.captureException** when `NEXT_PUBLIC_SENTRY_DSN` is set. Structured logger (no raw `console.log` in app code). |
 | **Dashboard UX** | **Breadcrumbs** on all dashboard pages; PageHeader, MetricCard, StatusBadge. |
-| **Tests** | **Vitest** unit tests across lib/, types/, and data layer (176 tests). Run: `npm run test`; coverage: `npm run test:coverage`. Coverage thresholds enforced at 80% (statements/functions/lines) and 70% (branches) in vitest.config. |
+| **Tests** | **Vitest** unit tests across lib/, types/, components, and data layer (85 tests). Run: `npm run test`; coverage: `npm run test:coverage`. Coverage thresholds enforced at 60% statements, 58% functions, 62% lines, and 50% branches in vitest.config. |
 | **Sentry** | **@sentry/nextjs** installed. Client/server/edge configs; `instrumentation.ts` + `onRequestError`; reporter and global-error send to Sentry. Set `NEXT_PUBLIC_SENTRY_DSN` (and optionally `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` for source maps). |
 | **Data scoping** | All ERP list/doc/create/update requests send **X-Westbridge-Account-Id** when session has accountId. Proxy or ERPNext can scope by account. |
 | **Types** | No `any` in application code (only in generated Prisma). Explicit types in services and API. |
