@@ -1,46 +1,55 @@
-# Production readiness
+# Production readiness — Frontend
 
-**Short answer:** The app is **production-capable** for an MVP/launch: architecture, security baseline, and UX are in place. For the “Fortune 500 CTO” bar, a few additions are recommended.
+**Short answer:** The frontend is **production-capable** for launch. Architecture, security baseline, and UX are in place.
 
 ---
 
-## ✅ In place
+## In place
 
 | Area | Status |
 |------|--------|
-| **Architecture** | Three-layer: presentation → `lib/services/*` → `lib/data/*`. No business logic in API routes or components. |
-| **API contract** | All APIs return `{ data, meta }` or `{ error, meta }`. Result pattern in services. |
-| **Security** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy; HSTS in production. **CSP** in next.config. **CSRF** on login, signup, ERP doc POST (token from GET /api/csrf, X-CSRF-Token header). Auth/signup/webhook rate limited. Secrets in env; health hides env in production. |
-| **Validation** | **Zod** schemas for auth (login/signup), ERP doc create, and API meta/error; request bodies validated in API routes; 400 + message on validation failure. |
-| **Errors** | Root and dashboard error boundaries; global error fallback. **Error reporter** (`lib/reporter.ts`) calls **Sentry.captureException** when `NEXT_PUBLIC_SENTRY_DSN` is set. Structured logger (no raw `console.log` in app code). |
-| **Dashboard UX** | **Breadcrumbs** on all dashboard pages; PageHeader, MetricCard, StatusBadge. |
-| **Tests** | **Vitest** unit tests across lib/, types/, components, and data layer (85 tests). Run: `npm run test`; coverage: `npm run test:coverage`. Coverage thresholds enforced at 60% statements, 58% functions, 62% lines, and 50% branches in vitest.config. |
-| **Sentry** | **@sentry/nextjs** installed. Client/server/edge configs; `instrumentation.ts` + `onRequestError`; reporter and global-error send to Sentry. Set `NEXT_PUBLIC_SENTRY_DSN` (and optionally `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` for source maps). |
-| **Data scoping** | All ERP list/doc/create/update requests send **X-Westbridge-Account-Id** when session has accountId. Proxy or ERPNext can scope by account. |
-| **Types** | No `any` in application code (only in generated Prisma). Explicit types in services and API. |
-| **Config** | `lib/config/site.ts` and `lib/env.ts`; required env validated at runtime. |
-| **UX** | Route groups, shared layout (marketing/auth/dashboard), Inter font, loading/error states on key dashboard pages. |
-| **CI** | GitHub Actions workflow (`.github/workflows/ci.yml`) runs tests and build on push/PR to main/master. |
-| **Rate limiting** | Fails **closed** when Redis is unavailable (requests denied). |
-| **Secrets** | `.env*` in `.gitignore`. Distribution zip must exclude `.env` — use `./scripts/zip-release.sh` to create a release zip without secrets. In production use a secrets manager (Vault, AWS Secrets Manager, etc.). |
-| **Docker** | Do not use default passwords. Set `MYSQL_ROOT_PASSWORD` (or DB URL) via env file or secrets; never commit. |
-| **ERP list filters** | Server-side validation in `lib/validation/erp-filters.ts`: allowlisted operators, safe field names, bounded values. No passthrough of raw filter JSON. |
-| **CSP** | Production uses `script-src 'self'` (no `unsafe-eval`). Dev keeps `unsafe-eval` and `unsafe-inline` for Next/React. |
-| **RBAC** | Session includes `role` (owner/admin/member). Use `requireOwnerOrAdmin(session)` from `lib/auth.ts` when adding APIs for team invite, API keys, or billing. |
+| **Architecture** | Pure Next.js 16 frontend with typed API client (`lib/api/client.ts`). All data flows through the backend API at `NEXT_PUBLIC_API_URL`. |
+| **Data fetching** | React Query for client-side, Server Components with cookie forwarding for SSR. Consistent error handling across both. |
+| **Security** | CSP headers (strict in production, relaxed in dev). HSTS, X-Frame-Options DENY, X-Content-Type-Options, Referrer-Policy, Permissions-Policy. Session cookie with `Secure` flag in production. |
+| **Validation** | Zod schemas for form inputs. Client-side validation before API calls. |
+| **Errors** | Root and dashboard error boundaries. Global error fallback. Sentry integration (client/server/edge). |
+| **Dashboard UX** | Breadcrumbs on all pages. PageHeader, MetricCard, StatusBadge, DataTable. Command palette (cmdk). |
+| **Tests** | Vitest unit tests (85 tests, 20 test files). Playwright E2E (7 spec files). Coverage thresholds: 60% statements, 50% branches, 58% functions, 62% lines. |
+| **Storybook** | 10 component stories with accessibility addon (`@storybook/addon-a11y`). |
+| **Sentry** | `@sentry/nextjs` with client/server/edge configs. `instrumentation.ts` + `onRequestError`. |
+| **Data scoping** | All requests include session cookie. Backend handles multi-tenant scoping via `X-Westbridge-Account-Id`. |
+| **Types** | No `any` in application code. Strict TypeScript. |
+| **i18n** | English, Spanish, French via `next-intl`. |
+| **Dark mode** | `next-themes` integration. |
+| **Analytics** | PostHog (privacy-respecting, honors Do Not Track). |
+| **CI** | GitHub Actions — lint, typecheck, unit tests, build, CodeQL SAST, TruffleHog, npm audit. |
 
 ---
 
-## ⚠️ Optional next steps
+## Depends on backend
 
-1. **Playwright (e2e)**  
-   Add Playwright (or similar) for critical user flows (login, signup, dashboard load, create invoice).
+The following are handled by [Westbridge-ERP-2](https://github.com/westbridgeinc/Westbridge-ERP-2):
 
-2. **Sentry source maps**  
-   Set `SENTRY_AUTH_TOKEN` and `SENTRY_ORG` / `SENTRY_PROJECT` in CI for readable stack traces in Sentry.
+- Authentication and session management
+- CSRF token generation and validation
+- RBAC and permission enforcement
+- Rate limiting
+- Database (PostgreSQL via Prisma)
+- ERPNext integration
+- Encryption, audit logging, billing
+- Background jobs (email, cleanup, webhooks)
+
+---
+
+## Optional next steps
+
+1. **Sentry source maps** — Set `SENTRY_AUTH_TOKEN` and `SENTRY_ORG`/`SENTRY_PROJECT` in CI.
+2. **Expand E2E coverage** — Add Playwright specs for invoice CRUD, CRM pipeline, settings.
+3. **Performance budgets** — Add Lighthouse CI or web-vitals thresholds.
 
 ---
 
 ## Verdict
 
-- **Ship as MVP / first production release:** Yes, with the current security and structure.
-- **“Stripe/Linear/Vercel” bar:** Met. Sentry error tracking, data scoping (X-Westbridge-Account-Id), expanded unit tests (auth, billing, audit, erp, csrf, utils), and consumer polish are in place. Optional: Playwright e2e, Sentry source map upload in CI.
+- **Ship as MVP:** Yes, with the backend running.
+- **Production quality:** Architecture, security headers, error tracking, testing, and CI are in place.
