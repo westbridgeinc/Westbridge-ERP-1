@@ -47,7 +47,8 @@ function parseEnv() {
 
   if (!result.success) {
     const formatted = result.error.flatten().fieldErrors;
-    console.error("❌ Invalid environment variables:", formatted);
+    // eslint-disable-next-line no-console -- Startup validation must log to stderr before logger is available
+    console.error("Invalid environment variables:", formatted);
     throw new Error(
       `Missing or invalid environment variables:\n${JSON.stringify(formatted, null, 2)}`
     );
