@@ -55,11 +55,18 @@ function SignupContent() {
 
   const returnFromPayment = searchParams.get("success") === "true";
 
+  // Fetch CSRF token on mount and auto-refresh every 4 minutes to prevent
+  // token expiry during long signup flows.
   useEffect(() => {
-    fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((d: { data?: { token?: string }; token?: string }) => setCsrfToken(d.data?.token ?? d.token ?? null))
-      .catch(() => setCsrfToken(null));
+    const fetchCsrf = () => {
+      fetch(`${API_BASE}/api/csrf`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((d: { data?: { token?: string }; token?: string }) => setCsrfToken(d.data?.token ?? d.token ?? null))
+        .catch(() => setCsrfToken(null));
+    };
+    fetchCsrf();
+    const interval = setInterval(fetchCsrf, 4 * 60 * 1000); // Refresh every 4 min
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -309,6 +316,19 @@ function SignupContent() {
                       }
                       const payload = data.data ?? data;
                       if (payload.paymentUrl) {
+                        // Validate payment URL to prevent open redirect attacks.
+                        // Only allow HTTPS URLs on trusted 2Checkout domains.
+                        const ALLOWED_PAYMENT_HOSTS = ["secure.2checkout.com", "www.2checkout.com", "2checkout.com"];
+                        try {
+                          const paymentUrlObj = new URL(payload.paymentUrl);
+                          if (paymentUrlObj.protocol !== "https:" || !ALLOWED_PAYMENT_HOSTS.includes(paymentUrlObj.hostname)) {
+                            setSignupError("Invalid payment URL received. Please contact support.");
+                            return;
+                          }
+                        } catch {
+                          setSignupError("Invalid payment URL received. Please contact support.");
+                          return;
+                        }
                         window.location.href = payload.paymentUrl;
                         return;
                       }

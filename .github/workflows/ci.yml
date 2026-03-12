@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
       - run: npm run lint
 
   typecheck:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
       - run: npx tsc --noEmit
 
   unit-tests:
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
       - run: npm run test -- --coverage
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
       - name: Build production
         run: npm run build
         env:
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       - name: Run Playwright tests
