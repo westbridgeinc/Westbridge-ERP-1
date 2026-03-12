@@ -6,7 +6,7 @@ app = "westbridge-frontend"
 primary_region = "iad"
 
 [build]
-  dockerfile = "erpnext/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"
