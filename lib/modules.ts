@@ -363,7 +363,8 @@ export const CATEGORIES = [
 ] as const;
 
 export function getPlan(id: PlanId): Plan {
-  const p = PLANS.find((x) => x.id === id);
+  const normalized = (id as string)?.toLowerCase() as PlanId;
+  const p = PLANS.find((x) => x.id === normalized);
   if (!p) throw new Error(`Unknown plan: ${id}`);
   return p;
 }

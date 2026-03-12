@@ -1,0 +1,29 @@
+# Westbridge ERP Frontend — Code Ownership
+# These owners are automatically requested for review on PRs.
+
+# Default — all changes require at least one team review
+* @westbridgeinc/engineering
+
+# CI/CD and infrastructure
+.github/ @westbridgeinc/platform
+Dockerfile @westbridgeinc/platform
+fly.toml @westbridgeinc/platform
+
+# Security-sensitive files
+lib/config/ @westbridgeinc/security
+lib/api/ @westbridgeinc/security
+middleware.ts @westbridgeinc/security
+sentry.*.config.ts @westbridgeinc/security
+
+# Auth flows
+app/(auth)/ @westbridgeinc/security
+
+# Component library
+components/ui/ @westbridgeinc/frontend
+
+# Type system and schemas
+types/ @westbridgeinc/engineering
+
+# Documentation
+docs/ @westbridgeinc/engineering
+*.md @westbridgeinc/engineering

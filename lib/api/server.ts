@@ -4,7 +4,7 @@
  * so that the backend authenticates the request.
  */
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { COOKIE } from "@/lib/constants";
 import type { ErpListParams, ErpListResponse } from "./client";
 
@@ -22,6 +22,20 @@ async function getCookieHeader(): Promise<string> {
 }
 
 /**
+ * Get forwarded headers (User-Agent, X-Forwarded-For) from the incoming
+ * request so server-side fetches pass the session fingerprint check.
+ */
+async function getForwardedHeaders(): Promise<Record<string, string>> {
+  const h = await headers();
+  const forwarded: Record<string, string> = {};
+  const ua = h.get("user-agent");
+  if (ua) forwarded["User-Agent"] = ua;
+  const xff = h.get("x-forwarded-for");
+  if (xff) forwarded["X-Forwarded-For"] = xff;
+  return forwarded;
+}
+
+/**
  * Generic server-side fetch with auth cookie forwarding.
  * The `cache: "no-store"` ensures fresh data on every request.
  */
@@ -30,12 +44,14 @@ async function serverRequest<T>(
   options?: RequestInit,
 ): Promise<T> {
   const cookieHeader = await getCookieHeader();
+  const forwarded = await getForwardedHeaders();
   const res = await fetch(`${API_BASE}${path}`, {
     cache: "no-store",
     ...options,
     headers: {
       "Content-Type": "application/json",
       Cookie: cookieHeader,
+      ...forwarded,
       ...(options?.headers ?? {}),
     },
   });
@@ -59,6 +75,7 @@ export async function serverErpList(
   params?: ErpListParams,
 ): Promise<ErpListResponse> {
   const cookieHeader = await getCookieHeader();
+  const forwarded = await getForwardedHeaders();
   const qs = new URLSearchParams({ doctype });
   if (params?.limit != null) qs.set("limit", String(params.limit));
   if (params?.page != null) qs.set("page", String(params.page));
@@ -71,6 +88,7 @@ export async function serverErpList(
     headers: {
       "Content-Type": "application/json",
       Cookie: cookieHeader,
+      ...forwarded,
     },
   });
   if (!res.ok) {
@@ -107,10 +125,12 @@ export interface DashboardData {
 
 export async function serverFetchDashboard(): Promise<DashboardData> {
   const cookieHeader = await getCookieHeader();
+  const forwarded = await getForwardedHeaders();
   const res = await fetch(`${API_BASE}/api/erp/dashboard`, {
     cache: "no-store",
     headers: {
       Cookie: cookieHeader,
+      ...forwarded,
     },
   });
   if (!res.ok) {

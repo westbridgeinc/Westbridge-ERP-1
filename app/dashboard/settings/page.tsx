@@ -3,7 +3,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Copy, ExternalLink, Check, ChevronRight, AlertCircle } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -171,7 +171,7 @@ function SettingsContent() {
       .finally(() => setBillingLoading(false));
   }, [tab]);
 
-  const billingPlanId = (billing?.plan ?? sessionUser?.role === "owner" ? billing?.plan : null) as PlanId | null;
+  const billingPlanId = ((billing?.plan ?? (sessionUser?.role === "owner" ? billing?.plan : null)) as string | null)?.toLowerCase() as PlanId | null;
   const billingPlan = billingPlanId ? getPlan(billingPlanId) : null;
   const nextBilling = nextBillingDate(billing?.accountCreatedAt ?? null);
 
@@ -546,17 +546,6 @@ function SettingsContent() {
         {tab === "integrations" && (
           <div className="max-w-2xl space-y-8">
             <div>
-              <h2 className="font-display text-lg font-semibold text-foreground">ERPNext connection</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Connect your ERPNext instance for sync and migration.</p>
-              <div className="mt-4 flex items-center justify-between rounded-md border border-border bg-card p-4">
-                <div>
-                  <p className="font-medium text-foreground">Status</p>
-                  <p className="text-sm text-muted-foreground">Not connected</p>
-                </div>
-                <Button variant="default" size="default">Connect ERPNext</Button>
-              </div>
-            </div>
-            <div>
               <h2 className="font-display text-lg font-semibold text-foreground">API keys</h2>
               <p className="mt-1 text-sm text-muted-foreground">Manage API keys for programmatic access.</p>
               <div className="mt-4 flex items-center justify-between">
@@ -894,9 +883,8 @@ function SettingsContent() {
 }
 
 export default function SettingsPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <SettingsContent />
-    </Suspense>
-  );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <PageSkeleton />;
+  return <SettingsContent />;
 }

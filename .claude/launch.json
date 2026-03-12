@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "SwiftGY Web",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000
+      "name": "Westbridge ERP Frontend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["/tmp/westbridge-erp1-dev.sh"],
+      "port": 3004
     }
   ]
 }

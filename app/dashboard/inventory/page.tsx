@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { Package } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Package, Warehouse, ArrowRightLeft } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -126,8 +126,64 @@ const columns: Column<InventoryItem>[] = [
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/*  Stock Entry & Warehouse mappers + columns                          */
+/* ------------------------------------------------------------------ */
+
+interface GenericRow {
+  id: string;
+  [key: string]: unknown;
+}
+
+function mapStockEntry(d: Record<string, unknown>): GenericRow {
+  return {
+    id: String(d.name ?? ""),
+    purpose: String(d.stock_entry_type ?? d.purpose ?? "\u2014"),
+    postingDate: String(d.posting_date ?? ""),
+    status: String(d.docstatus === 1 ? "Submitted" : d.docstatus === 2 ? "Cancelled" : "Draft"),
+  };
+}
+
+function mapWarehouse(d: Record<string, unknown>): GenericRow {
+  return {
+    id: String(d.name ?? ""),
+    warehouseName: String(d.warehouse_name ?? d.name ?? ""),
+    warehouseType: String(d.warehouse_type ?? "\u2014"),
+    company: String(d.company ?? "\u2014"),
+  };
+}
+
+const stockEntryColumns: Column<GenericRow>[] = [
+  { id: "id", header: "Entry #", accessor: (r) => <span className="font-medium text-foreground">{r.id as string}</span>, sortValue: (r) => r.id },
+  { id: "purpose", header: "Purpose", accessor: (r) => <span className="text-muted-foreground">{r.purpose as string}</span>, sortValue: (r) => r.purpose as string },
+  { id: "postingDate", header: "Date", accessor: (r) => <span className="text-muted-foreground/60">{r.postingDate as string}</span>, sortValue: (r) => r.postingDate as string },
+  { id: "status", header: "Status", accessor: (r) => <Badge status={r.status as string}>{r.status as string}</Badge>, sortValue: (r) => r.status as string },
+];
+
+const warehouseColumns: Column<GenericRow>[] = [
+  { id: "id", header: "Warehouse ID", accessor: (r) => <span className="font-medium text-foreground">{r.id as string}</span>, sortValue: (r) => r.id },
+  { id: "warehouseName", header: "Name", accessor: (r) => <span className="text-muted-foreground">{r.warehouseName as string}</span>, sortValue: (r) => r.warehouseName as string },
+  { id: "warehouseType", header: "Type", accessor: (r) => <span className="text-muted-foreground">{r.warehouseType as string}</span>, sortValue: (r) => r.warehouseType as string },
+  { id: "company", header: "Company", accessor: (r) => <span className="text-muted-foreground/60">{r.company as string}</span>, sortValue: (r) => r.company as string },
+];
+
+const TYPE_CONFIG = {
+  default: { doctype: "Item", title: "Inventory", subtitle: "Stock levels and warehouse management" },
+  entry: { doctype: "Stock Entry", title: "Stock Entries", subtitle: "Track stock movements" },
+  warehouse: { doctype: "Warehouse", title: "Warehouses", subtitle: "Manage your warehouses" },
+} as const;
+
+/* ------------------------------------------------------------------ */
+/*  Page component                                                     */
+/* ------------------------------------------------------------------ */
+
 export default function InventoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type") ?? "default";
+  const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] ?? TYPE_CONFIG.default;
+  const isItem = type === "default" || !type;
+
   const [page, setPage] = useState(0);
   const {
     data: rawList = [],
@@ -137,20 +193,24 @@ export default function InventoryPage() {
     isError,
     error: queryError,
     refetch,
-  } = useErpList("Item", { page, limit: 100 });
+  } = useErpList(config.doctype, { page, limit: 100 });
 
   const items = useMemo(
-    () => (rawList as Record<string, unknown>[]).map(mapErpItem),
-    [rawList],
+    () => isItem
+      ? (rawList as Record<string, unknown>[]).map(mapErpItem)
+      : type === "entry"
+        ? (rawList as Record<string, unknown>[]).map(mapStockEntry)
+        : (rawList as Record<string, unknown>[]).map(mapWarehouse),
+    [rawList, isItem, type],
   );
-  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load inventory." : null;
-  const stats = useMemo(() => deriveStats(items), [items]);
+  const error = queryError instanceof Error ? queryError.message : isError ? `Failed to load ${config.title.toLowerCase()}.` : null;
+  const stats = useMemo(() => isItem ? deriveStats(items as InventoryItem[]) : null, [items, isItem]);
 
   const header = (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Inventory</h1>
-        <p className="text-sm text-muted-foreground">Stock levels and warehouse management</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">{config.title}</h1>
+        <p className="text-sm text-muted-foreground">{config.subtitle}</p>
       </div>
       <Button variant="primary" onClick={() => router.push("/dashboard/inventory/new")}>+ Create New</Button>
     </div>
@@ -198,32 +258,55 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       {header}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <MetricCard label="Total Items" value={stats.totalItems} />
-        <MetricCard label="Low Stock" value={stats.lowStock} subtextVariant={stats.lowStock > 0 ? "error" : "muted"} />
-        <MetricCard label="Out of Stock" value={stats.outOfStock} subtextVariant={stats.outOfStock > 0 ? "error" : "muted"} />
-        <MetricCard label="Total Value" value={formatCurrency(stats.totalValue)} />
-      </div>
+      {isItem && stats && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+          <MetricCard label="Total Items" value={stats.totalItems} />
+          <MetricCard label="Low Stock" value={stats.lowStock} subtextVariant={stats.lowStock > 0 ? "error" : "muted"} />
+          <MetricCard label="Out of Stock" value={stats.outOfStock} subtextVariant={stats.outOfStock > 0 ? "error" : "muted"} />
+          <MetricCard label="Total Value" value={formatCurrency(stats.totalValue)} />
+        </div>
+      )}
       <Card>
         <CardContent className="p-0">
-          <DataTable<InventoryItem>
-            columns={columns}
-            data={items}
-            keyExtractor={(r) => r.id}
-            onRowClick={(record) => router.push(`/dashboard/inventory/${encodeURIComponent(record.id)}`)}
-            loading={false}
-            emptyState={
-              <EmptyState
-                icon={<Package className="h-6 w-6" />}
-                title={MODULE_EMPTY_STATES.inventory.title}
-                description={MODULE_EMPTY_STATES.inventory.description}
-                actionLabel={MODULE_EMPTY_STATES.inventory.actionLabel}
-                actionHref={MODULE_EMPTY_STATES.inventory.actionLink}
-                supportLine={EMPTY_STATE_SUPPORT_LINE}
-              />
-            }
-            pageSize={20}
-          />
+          {isItem ? (
+            <DataTable<InventoryItem>
+              columns={columns}
+              data={items as InventoryItem[]}
+              keyExtractor={(r) => r.id}
+              onRowClick={(record) => router.push(`/dashboard/inventory/${encodeURIComponent(record.id)}`)}
+              loading={false}
+              emptyState={
+                <EmptyState
+                  icon={<Package className="h-6 w-6" />}
+                  title={MODULE_EMPTY_STATES.inventory.title}
+                  description={MODULE_EMPTY_STATES.inventory.description}
+                  actionLabel={MODULE_EMPTY_STATES.inventory.actionLabel}
+                  actionHref={MODULE_EMPTY_STATES.inventory.actionLink}
+                  supportLine={EMPTY_STATE_SUPPORT_LINE}
+                />
+              }
+              pageSize={20}
+            />
+          ) : (
+            <DataTable<GenericRow>
+              columns={type === "entry" ? stockEntryColumns : warehouseColumns}
+              data={items as GenericRow[]}
+              keyExtractor={(r) => r.id}
+              onRowClick={(record) => router.push(`/dashboard/inventory/${encodeURIComponent(record.id)}`)}
+              loading={false}
+              emptyState={
+                <EmptyState
+                  icon={type === "entry" ? <ArrowRightLeft className="h-6 w-6" /> : <Warehouse className="h-6 w-6" />}
+                  title={`No ${config.title.toLowerCase()} yet`}
+                  description={`Create your first ${type === "entry" ? "stock entry" : "warehouse"} to get started.`}
+                  actionLabel="Create New"
+                  actionHref="/dashboard/inventory/new"
+                  supportLine={EMPTY_STATE_SUPPORT_LINE}
+                />
+              }
+              pageSize={20}
+            />
+          )}
           <div className="flex items-center justify-between border-t border-border px-4 py-2">
             <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
             <div className="flex gap-2">

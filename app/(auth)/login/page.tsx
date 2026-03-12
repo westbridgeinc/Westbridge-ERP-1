@@ -60,6 +60,13 @@ export default function LoginPage() {
         setFailedAttempts((n) => n + 1);
         return;
       }
+      // If the proxy returned a session token, use navigation-based cookie setting
+      // to ensure the httpOnly cookie is stored reliably across browsers.
+      const sessionToken = data?.data?.sessionToken;
+      if (sessionToken) {
+        window.location.href = `/api/auth/session?token=${encodeURIComponent(sessionToken)}`;
+        return;
+      }
       router.push(ROUTES.dashboard);
       router.refresh();
     } catch {

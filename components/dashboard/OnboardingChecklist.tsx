@@ -11,22 +11,12 @@ const STORAGE_IMPORT = "wb_onboarding_import_done";
 const STORAGE_INVITE = "wb_onboarding_invite_done";
 
 const STEPS = [
-  { id: "erp", label: "Connect your ERPNext instance", href: "/dashboard/settings", storageKey: null },
   { id: "employee", label: "Add your first employee", href: "/dashboard/hr", storageKey: null },
   { id: "invoice", label: "Create your first invoice", href: "/dashboard/invoices", storageKey: null },
   { id: "accounts", label: "Set up your chart of accounts", href: "/dashboard/accounting", storageKey: null },
   { id: "import", label: "Import existing data", href: "/dashboard/settings?tab=general", storageKey: STORAGE_IMPORT },
   { id: "invite", label: "Invite your team", href: "/dashboard/settings?tab=team", storageKey: STORAGE_INVITE },
 ] as const;
-
-async function checkErpConnected(): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_BASE}/api/erp/list?doctype=Company&limit_page_length=1`, { credentials: "include" });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
 
 async function checkErpListHasRows(doctype: string): Promise<boolean> {
   try {
@@ -54,8 +44,7 @@ export function OnboardingChecklist({ checklistRef }: { checklistRef?: React.Ref
       return;
     }
 
-    const [erpConnected, hasEmployees, hasInvoices, hasAccounts] = await Promise.all([
-      checkErpConnected(),
+    const [hasEmployees, hasInvoices, hasAccounts] = await Promise.all([
       checkErpListHasRows("Employee"),
       checkErpListHasRows("Sales Invoice"),
       checkErpListHasRows("Account"),
@@ -65,7 +54,6 @@ export function OnboardingChecklist({ checklistRef }: { checklistRef?: React.Ref
     const inviteDone = localStorage.getItem(STORAGE_INVITE) === "true";
 
     setCompleted({
-      erp: erpConnected,
       employee: hasEmployees,
       invoice: hasInvoices,
       accounts: hasAccounts,

@@ -8,6 +8,18 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+/** Strip internal infrastructure names from error messages shown to users. */
+function sanitizeError(msg: string): string {
+  let cleaned = msg.replace(/ERPNext\s*/gi, "").replace(/Frappe\s*/gi, "").replace(/Service error\s*/gi, "");
+  // "403: FORBIDDEN" → "Access denied"
+  cleaned = cleaned.replace(/403:\s*FORBIDDEN/i, "Access denied — you may not have permission for this resource");
+  // "404: NOT FOUND" → "Not found"
+  cleaned = cleaned.replace(/404:\s*NOT FOUND/i, "This resource was not found");
+  // "502: BAD GATEWAY" → service unavailable
+  cleaned = cleaned.replace(/502:\s*BAD GATEWAY/i, "Service temporarily unavailable. Please try again shortly");
+  return cleaned.trim() || "Something went wrong";
+}
+
 /**
  * Fetch a CSRF token from the backend before performing a mutation.
  * Caches the token for 5 minutes to avoid redundant round-trips.
@@ -52,7 +64,7 @@ async function request<T>(
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message = (body as { error?: { message?: string } })?.error?.message ?? `HTTP ${res.status}`;
-    throw new Error(message);
+    throw new Error(sanitizeError(message));
   }
   const body = await res.json();
   return (body as { data: T }).data;
@@ -109,7 +121,7 @@ async function erpList(doctype: string, params?: ErpListParams): Promise<ErpList
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message = (body as { error?: { message?: string } })?.error?.message ?? `HTTP ${res.status}`;
-    throw new Error(message);
+    throw new Error(sanitizeError(message));
   }
   const body = (await res.json()) as { data: unknown[]; meta: { page: number; pageSize: number; hasMore: boolean } };
   return { data: body.data ?? [], meta: body.meta ?? { page: 0, pageSize: 20, hasMore: false } };

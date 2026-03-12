@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Server, LayoutGrid, Users } from "lucide-react";
+import { FileText, LayoutGrid, Users } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 
@@ -10,10 +10,10 @@ const STORAGE_WELCOMED = "wb_welcomed";
 
 const CARDS = [
   {
-    title: "Connect ERPNext",
-    description: "Link your ERPNext instance to sync data",
-    icon: Server,
-    href: "/dashboard/settings",
+    title: "Create your first invoice",
+    description: "Start billing your customers in minutes",
+    icon: FileText,
+    href: "/dashboard/invoices",
   },
   {
     title: "Explore modules",

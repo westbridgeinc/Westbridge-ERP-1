@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -17,6 +17,10 @@ import { formatDateLong } from "@/lib/locale/date";
 import { AIChatPanel } from "@/components/ai/AIChatPanel";
 import { useErpList } from "@/lib/queries/useErpList";
 
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
 interface PurchaseOrder {
   id: string;
   supplier: string;
@@ -26,23 +30,51 @@ interface PurchaseOrder {
   status: string;
 }
 
+interface SupplierRow {
+  id: string;
+  name: string;
+  supplierType: string;
+  country: string;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mappers                                                            */
+/* ------------------------------------------------------------------ */
+
 function mapErpPurchaseOrder(d: Record<string, unknown>): PurchaseOrder {
   return {
     id: String(d.name ?? ""),
     supplier: String(d.supplier_name ?? d.supplier ?? "\u2014"),
     amount: Number(d.grand_total ?? d.net_total ?? 0),
-    orderDate: String(d.transaction_date ?? ""),
-    expected: String(d.schedule_date ?? ""),
+    orderDate: String(d.transaction_date ?? d.posting_date ?? ""),
+    expected: String(d.schedule_date ?? d.due_date ?? ""),
     status: String(d.status ?? "Draft").trim(),
   };
 }
+
+function mapErpSupplier(d: Record<string, unknown>): SupplierRow {
+  return {
+    id: String(d.name ?? ""),
+    name: String(d.supplier_name ?? d.name ?? ""),
+    supplierType: String(d.supplier_type ?? "\u2014"),
+    country: String(d.country ?? "\u2014"),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
 function fmtDate(d: string): string {
   if (!d) return "\u2014";
   try { return formatDateLong(d); } catch { return d; }
 }
 
-const columns: Column<PurchaseOrder>[] = [
+/* ------------------------------------------------------------------ */
+/*  Column definitions                                                 */
+/* ------------------------------------------------------------------ */
+
+const poColumns: Column<PurchaseOrder>[] = [
   { id: "id", header: "PO #", accessor: (r) => <span className="font-medium text-foreground">{r.id}</span>, sortValue: (r) => r.id },
   { id: "supplier", header: "Supplier", accessor: (r) => <span className="text-muted-foreground">{r.supplier}</span>, sortValue: (r) => r.supplier },
   { id: "amount", header: "Amount", align: "right", accessor: (r) => <span className="font-medium text-foreground">{formatCurrency(r.amount, "USD")}</span>, sortValue: (r) => r.amount },
@@ -51,20 +83,59 @@ const columns: Column<PurchaseOrder>[] = [
   { id: "status", header: "Status", accessor: (r) => <Badge status={r.status}>{r.status}</Badge> },
 ];
 
+const piColumns: Column<PurchaseOrder>[] = [
+  { id: "id", header: "Invoice #", accessor: (r) => <span className="font-medium text-foreground">{r.id}</span>, sortValue: (r) => r.id },
+  { id: "supplier", header: "Supplier", accessor: (r) => <span className="text-muted-foreground">{r.supplier}</span>, sortValue: (r) => r.supplier },
+  { id: "amount", header: "Amount", align: "right", accessor: (r) => <span className="font-medium text-foreground">{formatCurrency(r.amount, "USD")}</span>, sortValue: (r) => r.amount },
+  { id: "orderDate", header: "Date", accessor: (r) => <span className="text-muted-foreground/60">{fmtDate(r.orderDate)}</span>, sortValue: (r) => r.orderDate },
+  { id: "expected", header: "Due Date", accessor: (r) => <span className="text-muted-foreground/60">{fmtDate(r.expected)}</span>, sortValue: (r) => r.expected },
+  { id: "status", header: "Status", accessor: (r) => <Badge status={r.status}>{r.status}</Badge> },
+];
+
+const supplierColumns: Column<SupplierRow>[] = [
+  { id: "name", header: "Supplier Name", accessor: (r) => <span className="font-medium text-foreground">{r.name}</span>, sortValue: (r) => r.name },
+  { id: "supplierType", header: "Type", accessor: (r) => <span className="text-muted-foreground">{r.supplierType}</span>, sortValue: (r) => r.supplierType },
+  { id: "country", header: "Country", accessor: (r) => <span className="text-muted-foreground">{r.country}</span>, sortValue: (r) => r.country },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Config by type                                                     */
+/* ------------------------------------------------------------------ */
+
+const TYPE_CONFIG = {
+  default: { doctype: "Purchase Order", title: "Purchase Orders", subtitle: "Purchase orders and suppliers" },
+  invoice: { doctype: "Purchase Invoice", title: "Purchase Invoices", subtitle: "Manage purchase invoices and bills" },
+  supplier: { doctype: "Supplier", title: "Suppliers", subtitle: "Manage your suppliers" },
+} as const;
+
+/* ------------------------------------------------------------------ */
+/*  Page component                                                     */
+/* ------------------------------------------------------------------ */
+
 export default function ProcurementPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type") ?? "default";
+  const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] ?? TYPE_CONFIG.default;
+  const isSupplier = type === "supplier";
+
   const [page, setPage] = useState(0);
-  const { data: rawList = [], hasMore, page: currentPage, isLoading: loading, isError, error: queryError, refetch } = useErpList("Purchase Order", { page });
-  const data = useMemo(() => (rawList as Record<string, unknown>[]).map(mapErpPurchaseOrder), [rawList]);
-  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load purchase orders." : null;
+  const { data: rawList = [], hasMore, page: currentPage, isLoading: loading, isError, error: queryError, refetch } = useErpList(config.doctype, { page });
+
+  const data = useMemo(() => {
+    const list = rawList as Record<string, unknown>[];
+    if (isSupplier) return list.map(mapErpSupplier);
+    return list.map(mapErpPurchaseOrder);
+  }, [rawList, isSupplier]);
+  const error = queryError instanceof Error ? queryError.message : isError ? `Failed to load ${config.title.toLowerCase()}.` : null;
 
   if (error) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Procurement</h1>
-            <p className="text-sm text-muted-foreground">Purchase orders and suppliers</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">{config.title}</h1>
+            <p className="text-sm text-muted-foreground">{config.subtitle}</p>
           </div>
           <Button variant="primary" onClick={() => router.push("/dashboard/procurement/new")}>+ Create New</Button>
         </div>
@@ -86,8 +157,8 @@ export default function ProcurementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Procurement</h1>
-          <p className="text-sm text-muted-foreground">Purchase orders and suppliers</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{config.title}</h1>
+          <p className="text-sm text-muted-foreground">{config.subtitle}</p>
         </div>
         <Button variant="primary" onClick={() => router.push("/dashboard/procurement/new")}>+ Create New</Button>
       </div>
@@ -95,10 +166,28 @@ export default function ProcurementPage() {
         <CardContent className="p-0">
           {loading ? (
             <SkeletonTable rows={6} columns={6} />
+          ) : isSupplier ? (
+            <DataTable
+              columns={supplierColumns}
+              data={data as SupplierRow[]}
+              keyExtractor={(r) => r.id}
+              onRowClick={(record) => router.push(`/dashboard/procurement/${encodeURIComponent(record.id)}`)}
+              emptyState={
+                <EmptyState
+                  icon={<Truck className="h-6 w-6" />}
+                  title="No suppliers yet"
+                  description="Add your first supplier to start managing procurement."
+                  actionLabel="Add Supplier"
+                  actionHref="/dashboard/procurement/new"
+                  supportLine={EMPTY_STATE_SUPPORT_LINE}
+                />
+              }
+              pageSize={20}
+            />
           ) : (
             <DataTable
-              columns={columns}
-              data={data}
+              columns={type === "invoice" ? piColumns : poColumns}
+              data={data as unknown as PurchaseOrder[]}
               keyExtractor={(r) => r.id}
               onRowClick={(record) => router.push(`/dashboard/procurement/${encodeURIComponent(record.id)}`)}
               emptyState={

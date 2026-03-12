@@ -60,6 +60,7 @@ export async function middleware(request: NextRequest) {
         headers: {
           Cookie: `${COOKIE.SESSION_NAME}=${sessionToken}`,
           "User-Agent": request.headers.get("user-agent") ?? "",
+          "X-Forwarded-For": request.headers.get("x-forwarded-for") ?? "",
         },
         cache: "no-store",
         signal: AbortSignal.timeout(5_000),

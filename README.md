@@ -1,5 +1,9 @@
 # Westbridge — Frontend
 
+[![CI](https://github.com/westbridgeinc/Westbridge-ERP-1/actions/workflows/ci.yml/badge.svg)](https://github.com/westbridgeinc/Westbridge-ERP-1/actions/workflows/ci.yml)
+[![Security](https://github.com/westbridgeinc/Westbridge-ERP-1/actions/workflows/security.yml/badge.svg)](https://github.com/westbridgeinc/Westbridge-ERP-1/actions/workflows/security.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Next.js frontend for the Westbridge ERP platform. This is a pure client application that communicates with the [Westbridge Backend API](https://github.com/westbridgeinc/Westbridge-ERP-2) for all data and authentication.
 
 Invoicing, inventory, HR, payroll, CRM, and AI-powered insights — designed for small-to-medium businesses.
