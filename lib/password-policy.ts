@@ -8,6 +8,8 @@ export interface PasswordValidationResult {
  * Actual authentication is performed by ERPNext; this is a client-side pre-check
  * so users get immediate feedback (e.g. in change-password or invite flows).
  */
+export const TOTAL_PW_REQUIREMENTS = 6;
+
 export function validatePassword(password: string): PasswordValidationResult {
   const errors: string[] = [];
 

@@ -13,9 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { validatePassword } from "@/lib/password-policy";
-
-const TOTAL_PW_REQUIREMENTS = 6;
+import { validatePassword, TOTAL_PW_REQUIREMENTS } from "@/lib/password-policy";
 
 function SignupContent() {
   const searchParams = useSearchParams();
@@ -297,7 +295,9 @@ function SignupContent() {
                           "X-CSRF-Token": csrfToken,
                         },
                         body: JSON.stringify({
+                          name,
                           email,
+                          password,
                           companyName: company,
                           plan: plan.name,
                           modulesSelected: [...plan.includedBundleIds, ...addOnIds],

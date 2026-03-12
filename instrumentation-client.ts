@@ -1,14 +1,7 @@
+// Sentry client-side initialization is handled in sentry.client.config.ts
+// (loaded automatically by @sentry/nextjs via withSentryConfig in next.config.ts).
+// Do NOT add Sentry.init() here — it would cause duplicate error reports and wasted quota.
+
 import * as Sentry from "@sentry/nextjs";
-
-const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
-
-if (dsn) {
-  Sentry.init({
-    dsn,
-    tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
-    debug: false,
-    environment: process.env.NODE_ENV ?? "development",
-  });
-}
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

@@ -46,10 +46,16 @@ export function AIChatPanel({ module = "general" }: AIChatPanelProps) {
     setLoading(true);
 
     try {
+      const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
+      const csrfData = await csrfRes.json().catch(() => ({}));
+      const csrfToken = (csrfData as Record<string, unknown>)?.data
+        ? ((csrfData as { data: { token?: string } }).data.token ?? "")
+        : ((csrfData as { token?: string }).token ?? "");
+
       const res = await fetch(`${API_BASE}/api/ai/chat`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify({ message: msg, module, conversationId: convId }),
       });
       const json = await res.json() as {

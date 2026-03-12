@@ -28,12 +28,16 @@ export default function ForgotPasswordPage() {
     setError(null);
     setLoading(true);
     try {
-      await fetch(`${API_BASE}/api/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         body: JSON.stringify({ email }),
       });
+      if (res.status >= 500) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
       setSent(true);
     } catch {
       setError("Something went wrong. Please try again.");

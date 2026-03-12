@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { COOKIE } from "@/lib/constants";
 import type { ErpListParams, ErpListResponse } from "./client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_BASE = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
 
 /**
  * Build a Cookie header string from the incoming request cookies

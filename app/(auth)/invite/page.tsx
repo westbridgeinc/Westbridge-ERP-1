@@ -9,9 +9,7 @@ import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/label";
-import { validatePassword } from "@/lib/password-policy";
-
-const TOTAL_PW_REQUIREMENTS = 6;
+import { validatePassword, TOTAL_PW_REQUIREMENTS } from "@/lib/password-policy";
 
 interface InviteInfo {
   email: string;

@@ -78,7 +78,13 @@ export default function AdminJobsPage() {
   async function retryJob(jobId: string, queueName: string) {
     setRetrying(jobId);
     try {
-      const res = await fetch(`${API_BASE}/api/admin/jobs/${jobId}/retry?queue=${queueName}`, { method: "POST", credentials: "include" });
+      const csrfRes = await fetch(`${API_BASE}/api/csrf`, { credentials: "include" });
+      const csrfData = await csrfRes.json().catch(() => ({}));
+      const csrfToken = (csrfData as Record<string, unknown>)?.data
+        ? ((csrfData as { data: { token?: string } }).data.token ?? "")
+        : ((csrfData as { token?: string }).token ?? "");
+
+      const res = await fetch(`${API_BASE}/api/admin/jobs/${jobId}/retry?queue=${queueName}`, { method: "POST", credentials: "include", headers: { "X-CSRF-Token": csrfToken } });
       if (!res.ok) throw new Error("Retry failed");
       toast.success(`Job ${jobId} queued for retry`);
       await fetchStats();
