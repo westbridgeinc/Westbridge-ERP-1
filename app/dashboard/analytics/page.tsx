@@ -3,7 +3,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AreaChart,
@@ -535,17 +535,36 @@ function AnalyticsDashboard() {
 /*  Page component — routes based on ?type=                            */
 /* ------------------------------------------------------------------ */
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
 
-  // Projects section in sidebar maps here
+  // Projects section in sidebar maps here via ?type=project/task/timesheet
   if (type && PROJECT_TYPE_CONFIG[type]) {
     return <ProjectsListView type={type} />;
   }
 
-  // Default: show the Projects list (since sidebar "Projects" links here)
-  // Check if we're coming from the Projects sidebar section (no type = Projects list)
-  // Analytics dashboard is accessed via the default (no sidebar link currently points to it directly)
-  return <ProjectsListView type="project" />;
+  // Default: show the Analytics dashboard with revenue trends, top customers, etc.
+  return <AnalyticsDashboard />;
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Analytics</h1>
+          <p className="text-sm text-muted-foreground">Reports and business intelligence</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+        </div>
+      </div>
+    }>
+      <AnalyticsPageContent />
+    </Suspense>
+  );
 }

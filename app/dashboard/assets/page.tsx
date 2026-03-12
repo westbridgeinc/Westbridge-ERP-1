@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -87,7 +87,7 @@ const TYPE_CONFIG = {
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function AssetsPage() {
+function AssetsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") ?? "default";
@@ -193,5 +193,13 @@ export default function AssetsPage() {
       </Card>
       <AIChatPanel module="assets" />
     </div>
+  );
+}
+
+export default function AssetsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AssetsPageContent />
+    </Suspense>
   );
 }

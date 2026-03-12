@@ -3,7 +3,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -594,7 +594,7 @@ function AccountingDashboard() {
 /*  Page component — routes based on ?type=                            */
 /* ------------------------------------------------------------------ */
 
-export default function AccountingPage() {
+function AccountingPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
 
@@ -603,4 +603,12 @@ export default function AccountingPage() {
   }
 
   return <AccountingDashboard />;
+}
+
+export default function AccountingPage() {
+  return (
+    <Suspense fallback={null}>
+      <AccountingPageContent />
+    </Suspense>
+  );
 }

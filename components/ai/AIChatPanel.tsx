@@ -10,7 +10,7 @@ import ReactMarkdown from "react-markdown";
 interface Message { role: "user" | "assistant"; content: string }
 
 interface AIChatPanelProps {
-  module?: "finance" | "crm" | "inventory" | "hr" | "manufacturing" | "projects" | "biztools" | "general";
+  module?: "finance" | "crm" | "inventory" | "hr" | "manufacturing" | "projects" | "biztools" | "general" | "assets";
 }
 
 const SUGGESTIONS: Record<string, string[]> = {

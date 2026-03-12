@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -94,7 +94,7 @@ const TYPE_CONFIG = {
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function CRMPage() {
+function CRMPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") ?? "default";
@@ -188,5 +188,13 @@ export default function CRMPage() {
       </Card>
       <AIChatPanel module="crm" />
     </div>
+  );
+}
+
+export default function CRMPage() {
+  return (
+    <Suspense fallback={null}>
+      <CRMPageContent />
+    </Suspense>
   );
 }

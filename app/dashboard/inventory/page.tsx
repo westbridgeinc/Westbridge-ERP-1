@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, Warehouse, ArrowRightLeft } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
@@ -196,7 +196,7 @@ const TYPE_CONFIG = {
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") ?? "default";
@@ -343,5 +343,13 @@ export default function InventoryPage() {
       </Card>
       <AIChatPanel module="inventory" />
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <InventoryPageContent />
+    </Suspense>
   );
 }

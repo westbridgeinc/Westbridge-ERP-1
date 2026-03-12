@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserCog, ClipboardCheck } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
@@ -97,7 +97,7 @@ const attendanceColumns: Column<AttendanceRow>[] = [
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function HRPage() {
+function HRPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
@@ -246,5 +246,13 @@ export default function HRPage() {
       </Card>
       <AIChatPanel module="hr" />
     </div>
+  );
+}
+
+export default function HRPage() {
+  return (
+    <Suspense fallback={null}>
+      <HRPageContent />
+    </Suspense>
   );
 }

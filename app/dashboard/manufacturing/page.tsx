@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -122,7 +122,7 @@ const TYPE_CONFIG = {
 /*  Page component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function ManufacturingPage() {
+function ManufacturingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") ?? "default";
@@ -248,5 +248,13 @@ export default function ManufacturingPage() {
       </Card>
       <AIChatPanel module="manufacturing" />
     </div>
+  );
+}
+
+export default function ManufacturingPage() {
+  return (
+    <Suspense fallback={null}>
+      <ManufacturingPageContent />
+    </Suspense>
   );
 }
