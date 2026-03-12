@@ -33,61 +33,63 @@ const FILTERS = ["All", "Draft", "Unpaid", "Paid", "Overdue"] as const;
 
 /* ---------- column definitions ---------- */
 
-const columns: Column<InvoiceRow>[] = [
-  {
-    id: "id",
-    header: "Invoice #",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">{row.id}</span>
-    ),
-    sortValue: (row) => row.id,
-  },
-  {
-    id: "customer",
-    header: "Customer",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{row.customer}</span>
-    ),
-    sortValue: (row) => row.customer,
-  },
-  {
-    id: "amount",
-    header: "Amount",
-    align: "right",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">
-        {formatCurrency(row.amount, row.currency)}
-      </span>
-    ),
-    sortValue: (row) => row.amount,
-  },
-  {
-    id: "status",
-    header: "Status",
-    accessor: (row) => <Badge status={row.status}>{row.status}</Badge>,
-    sortValue: (row) => row.status,
-  },
-  {
-    id: "date",
-    header: "Date",
-    accessor: (row) => (
-      <span className="text-muted-foreground/60">
-        {row.date ? formatDate(row.date) : "\u2014"}
-      </span>
-    ),
-    sortValue: (row) => row.date,
-  },
-  {
-    id: "dueDate",
-    header: "Due Date",
-    accessor: (row) => (
-      <span className="text-muted-foreground/60">
-        {row.dueDate ? formatDate(row.dueDate) : "\u2014"}
-      </span>
-    ),
-    sortValue: (row) => row.dueDate,
-  },
-];
+function buildColumns(dateLabel: string, dueDateLabel: string, idLabel: string): Column<InvoiceRow>[] {
+  return [
+    {
+      id: "id",
+      header: idLabel,
+      accessor: (row) => (
+        <span className="font-medium text-foreground">{row.id}</span>
+      ),
+      sortValue: (row) => row.id,
+    },
+    {
+      id: "customer",
+      header: "Customer",
+      accessor: (row) => (
+        <span className="text-muted-foreground">{row.customer}</span>
+      ),
+      sortValue: (row) => row.customer,
+    },
+    {
+      id: "amount",
+      header: "Amount",
+      align: "right" as const,
+      accessor: (row) => (
+        <span className="font-medium text-foreground">
+          {formatCurrency(row.amount, row.currency)}
+        </span>
+      ),
+      sortValue: (row) => row.amount,
+    },
+    {
+      id: "status",
+      header: "Status",
+      accessor: (row) => <Badge status={row.status}>{row.status}</Badge>,
+      sortValue: (row) => row.status,
+    },
+    {
+      id: "date",
+      header: dateLabel,
+      accessor: (row) => (
+        <span className="text-muted-foreground/60">
+          {row.date ? formatDate(row.date) : "\u2014"}
+        </span>
+      ),
+      sortValue: (row) => row.date,
+    },
+    {
+      id: "dueDate",
+      header: dueDateLabel,
+      accessor: (row) => (
+        <span className="text-muted-foreground/60">
+          {row.dueDate ? formatDate(row.dueDate) : "\u2014"}
+        </span>
+      ),
+      sortValue: (row) => row.dueDate,
+    },
+  ];
+}
 
 /* ---------- component ---------- */
 
@@ -95,12 +97,31 @@ interface InvoicesListClientProps {
   invoices: InvoiceRow[];
   currentPage: number;
   hasMore: boolean;
+  title?: string;
+  subtitle?: string;
+  dateLabel?: string;
+  dueDateLabel?: string;
+  searchPlaceholder?: string;
+  type?: string;
 }
 
-export function InvoicesListClient({ invoices, currentPage, hasMore }: InvoicesListClientProps) {
+export function InvoicesListClient({
+  invoices,
+  currentPage,
+  hasMore,
+  title = "Invoices",
+  subtitle = "Manage and track invoices",
+  dateLabel = "Date",
+  dueDateLabel = "Due Date",
+  searchPlaceholder = "Search invoices...",
+  type = "invoice",
+}: InvoicesListClientProps) {
   const router = useRouter();
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const isOrder = type === "order";
+  const idLabel = isOrder ? "Order #" : "Invoice #";
+  const columns = useMemo(() => buildColumns(dateLabel, dueDateLabel, idLabel), [dateLabel, dueDateLabel, idLabel]);
 
   const filtered = useMemo(() => {
     return invoices.filter((inv) => {
@@ -123,8 +144,8 @@ export function InvoicesListClient({ invoices, currentPage, hasMore }: InvoicesL
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">Invoices</h1>
-            <p className="text-sm text-muted-foreground">Manage and track invoices</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">{title}</h1>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
           <Button variant="primary" onClick={handleCreateInvoice}>+ Create New</Button>
         </div>
@@ -149,8 +170,8 @@ export function InvoicesListClient({ invoices, currentPage, hasMore }: InvoicesL
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Invoices</h1>
-          <p className="text-sm text-muted-foreground">Manage and track invoices</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <Button variant="primary" onClick={handleCreateInvoice}>+ Create New</Button>
       </div>
@@ -159,7 +180,7 @@ export function InvoicesListClient({ invoices, currentPage, hasMore }: InvoicesL
           <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
             <Input
               type="search"
-              placeholder="Search invoices..."
+              placeholder={searchPlaceholder}
               className="w-80"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -193,10 +214,10 @@ export function InvoicesListClient({ invoices, currentPage, hasMore }: InvoicesL
           <div className="flex items-center justify-between border-t border-border px-4 py-2">
             <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => router.push("?page=" + (currentPage - 1))}>
+              <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => router.push(`?type=${type}&page=${currentPage - 1}`)}>
                 Previous
               </Button>
-              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => router.push("?page=" + (currentPage + 1))}>
+              <Button variant="outline" size="sm" disabled={!hasMore} onClick={() => router.push(`?type=${type}&page=${currentPage + 1}`)}>
                 Next
               </Button>
             </div>

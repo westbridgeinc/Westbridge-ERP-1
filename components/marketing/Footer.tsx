@@ -7,7 +7,7 @@ import { Logo } from "@/components/brand/Logo";
 const productLinks = [
   { href: ROUTES.modules, label: "Features" },
   { href: ROUTES.pricing, label: "Pricing" },
-  { href: "https://erpnext.com", label: "ERPNext", external: true },
+  { href: ROUTES.about, label: "Documentation" },
 ];
 
 const companyLinks = [

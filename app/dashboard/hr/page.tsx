@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { UserCog } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { UserCog, ClipboardCheck } from "lucide-react";
 import { MODULE_EMPTY_STATES, EMPTY_STATE_SUPPORT_LINE } from "@/lib/dashboard/empty-state-config";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -36,6 +36,14 @@ interface HRStats {
   inactive: number;
 }
 
+interface AttendanceRow {
+  id: string;
+  employee: string;
+  employeeName: string;
+  attendanceDate: string;
+  status: string;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Mapper & Stats                                                     */
 /* ------------------------------------------------------------------ */
@@ -56,49 +64,33 @@ function deriveStats(employees: Employee[]): HRStats {
   return { total: employees.length, active, inactive: employees.length - active };
 }
 
+function mapErpAttendance(r: Record<string, unknown>): AttendanceRow {
+  return {
+    id: String(r.name ?? ""),
+    employee: String(r.employee ?? ""),
+    employeeName: String(r.employee_name ?? r.employee ?? ""),
+    attendanceDate: String(r.attendance_date ?? ""),
+    status: String(r.status ?? "Absent"),
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /*  Columns                                                            */
 /* ------------------------------------------------------------------ */
 
-const columns: Column<Employee>[] = [
-  {
-    id: "name",
-    header: "Name",
-    accessor: (row) => (
-      <span className="font-medium text-foreground">{row.name}</span>
-    ),
-    sortValue: (row) => row.name,
-  },
-  {
-    id: "designation",
-    header: "Designation",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{row.designation}</span>
-    ),
-    sortValue: (row) => row.designation,
-  },
-  {
-    id: "department",
-    header: "Department",
-    accessor: (row) => (
-      <span className="text-muted-foreground">{row.department}</span>
-    ),
-    sortValue: (row) => row.department,
-  },
-  {
-    id: "status",
-    header: "Status",
-    accessor: (row) => <Badge status={row.status}>{row.status}</Badge>,
-    sortValue: (row) => row.status,
-  },
-  {
-    id: "dateJoined",
-    header: "Date Joined",
-    accessor: (row) => (
-      <span className="text-muted-foreground/60">{formatDate(row.dateJoined)}</span>
-    ),
-    sortValue: (row) => row.dateJoined,
-  },
+const employeeColumns: Column<Employee>[] = [
+  { id: "name", header: "Name", accessor: (row) => <span className="font-medium text-foreground">{row.name}</span>, sortValue: (row) => row.name },
+  { id: "designation", header: "Designation", accessor: (row) => <span className="text-muted-foreground">{row.designation}</span>, sortValue: (row) => row.designation },
+  { id: "department", header: "Department", accessor: (row) => <span className="text-muted-foreground">{row.department}</span>, sortValue: (row) => row.department },
+  { id: "status", header: "Status", accessor: (row) => <Badge status={row.status}>{row.status}</Badge>, sortValue: (row) => row.status },
+  { id: "dateJoined", header: "Date Joined", accessor: (row) => <span className="text-muted-foreground/60">{formatDate(row.dateJoined)}</span>, sortValue: (row) => row.dateJoined },
+];
+
+const attendanceColumns: Column<AttendanceRow>[] = [
+  { id: "id", header: "ID", accessor: (r) => <span className="font-medium text-foreground">{r.id}</span>, sortValue: (r) => r.id },
+  { id: "employeeName", header: "Employee", accessor: (r) => <span className="text-foreground">{r.employeeName}</span>, sortValue: (r) => r.employeeName },
+  { id: "attendanceDate", header: "Date", accessor: (r) => <span className="text-muted-foreground/60">{r.attendanceDate}</span>, sortValue: (r) => r.attendanceDate },
+  { id: "status", header: "Status", accessor: (r) => <Badge status={r.status}>{r.status}</Badge>, sortValue: (r) => r.status },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -107,6 +99,10 @@ const columns: Column<Employee>[] = [
 
 export default function HRPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type");
+  const isAttendance = type === "attendance";
+
   const [page, setPage] = useState(0);
   const {
     data: rawList = [],
@@ -116,30 +112,36 @@ export default function HRPage() {
     isError,
     error: queryError,
     refetch,
-  } = useErpList("Employee", {
+  } = useErpList(isAttendance ? "Attendance" : "Employee", {
     page,
     limit: 100,
-    fields: ["name", "employee_name", "designation", "department", "status", "date_of_joining"],
+    ...(isAttendance ? {} : { fields: ["name", "employee_name", "designation", "department", "status", "date_of_joining"] }),
   });
 
   const employees = useMemo(
-    () => (rawList as Record<string, unknown>[]).map(mapErpEmployee),
-    [rawList],
+    () => isAttendance ? [] : (rawList as Record<string, unknown>[]).map(mapErpEmployee),
+    [rawList, isAttendance],
   );
-  const error = queryError instanceof Error ? queryError.message : isError ? "Failed to load employees." : null;
-  const stats = useMemo(() => deriveStats(employees), [employees]);
+  const attendanceRows = useMemo(
+    () => isAttendance ? (rawList as Record<string, unknown>[]).map(mapErpAttendance) : [],
+    [rawList, isAttendance],
+  );
+  const error = queryError instanceof Error ? queryError.message : isError ? `Failed to load ${isAttendance ? "attendance" : "employees"}.` : null;
+  const stats = useMemo(() => isAttendance ? null : deriveStats(employees), [employees, isAttendance]);
+
+  const title = isAttendance ? "Attendance" : "HR";
+  const subtitle = isAttendance ? "Employee attendance records" : "Employee directory and management";
 
   const header = (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">HR</h1>
-        <p className="text-sm text-muted-foreground">Employee directory and management</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
       <Button variant="primary" onClick={() => router.push("/dashboard/hr/new")}>+ Create New</Button>
     </div>
   );
 
-  /* ---- Error state ---- */
   if (error) {
     return (
       <div className="space-y-6">
@@ -147,7 +149,7 @@ export default function HRPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-              <UserCog className="h-6 w-6" />
+              {isAttendance ? <ClipboardCheck className="h-6 w-6" /> : <UserCog className="h-6 w-6" />}
             </div>
             <p className="text-sm font-medium text-foreground">Something went wrong</p>
             <p className="mt-1 text-sm text-muted-foreground">{error}</p>
@@ -158,54 +160,77 @@ export default function HRPage() {
     );
   }
 
-  /* ---- Loading state ---- */
   if (loading) {
     return (
       <div className="space-y-6">
         {header}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="min-h-[88px] rounded-xl border border-border bg-card p-6 animate-pulse" />
-          ))}
-        </div>
+        {!isAttendance && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="min-h-[88px] rounded-xl border border-border bg-card p-6 animate-pulse" />
+            ))}
+          </div>
+        )}
         <Card>
           <CardContent className="p-0">
-            <SkeletonTable rows={8} columns={5} />
+            <SkeletonTable rows={8} columns={isAttendance ? 4 : 5} />
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  /* ---- Success / Empty states ---- */
   return (
     <div className="space-y-6">
       {header}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard label="Total Employees" value={stats.total} />
-        <MetricCard label="Active" value={stats.active} subtextVariant="success" />
-        <MetricCard label="Inactive" value={stats.inactive} subtextVariant="muted" />
-      </div>
+      {!isAttendance && stats && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <MetricCard label="Total Employees" value={stats.total} />
+          <MetricCard label="Active" value={stats.active} subtextVariant="success" />
+          <MetricCard label="Inactive" value={stats.inactive} subtextVariant="muted" />
+        </div>
+      )}
       <Card>
         <CardContent className="p-0">
-          <DataTable<Employee>
-            columns={columns}
-            data={employees}
-            keyExtractor={(r) => r.id}
-            onRowClick={(record) => router.push(`/dashboard/hr/${encodeURIComponent(record.id)}`)}
-            loading={false}
-            emptyState={
-              <EmptyState
-                icon={<UserCog className="h-6 w-6" />}
-                title={MODULE_EMPTY_STATES.hr.title}
-                description={MODULE_EMPTY_STATES.hr.description}
-                actionLabel={MODULE_EMPTY_STATES.hr.actionLabel}
-                actionHref={MODULE_EMPTY_STATES.hr.actionLink}
-                supportLine={EMPTY_STATE_SUPPORT_LINE}
-              />
-            }
-            pageSize={20}
-          />
+          {isAttendance ? (
+            <DataTable<AttendanceRow>
+              columns={attendanceColumns}
+              data={attendanceRows}
+              keyExtractor={(r) => r.id}
+              onRowClick={(record) => router.push(`/dashboard/hr/${encodeURIComponent(record.id)}`)}
+              loading={false}
+              emptyState={
+                <EmptyState
+                  icon={<ClipboardCheck className="h-6 w-6" />}
+                  title="No attendance records yet"
+                  description="Attendance records will appear here once employees start checking in."
+                  actionLabel="Mark Attendance"
+                  actionHref="/dashboard/hr/new"
+                  supportLine={EMPTY_STATE_SUPPORT_LINE}
+                />
+              }
+              pageSize={20}
+            />
+          ) : (
+            <DataTable<Employee>
+              columns={employeeColumns}
+              data={employees}
+              keyExtractor={(r) => r.id}
+              onRowClick={(record) => router.push(`/dashboard/hr/${encodeURIComponent(record.id)}`)}
+              loading={false}
+              emptyState={
+                <EmptyState
+                  icon={<UserCog className="h-6 w-6" />}
+                  title={MODULE_EMPTY_STATES.hr.title}
+                  description={MODULE_EMPTY_STATES.hr.description}
+                  actionLabel={MODULE_EMPTY_STATES.hr.actionLabel}
+                  actionHref={MODULE_EMPTY_STATES.hr.actionLink}
+                  supportLine={EMPTY_STATE_SUPPORT_LINE}
+                />
+              }
+              pageSize={20}
+            />
+          )}
           <div className="flex items-center justify-between border-t border-border px-4 py-2">
             <span className="text-sm text-muted-foreground">Page {currentPage + 1}</span>
             <div className="flex gap-2">

@@ -14,7 +14,7 @@ const BELIEFS = [
   {
     title: "ERP should work on day one.",
     description:
-      "Not after a six-month implementation engagement. Westbridge connects to your ERPNext instance and surfaces real data in minutes, not quarters.",
+      "Not after a six-month implementation engagement. Sign up, enter your company details, and start managing invoices, inventory, and payroll in minutes — not quarters.",
   },
   {
     title: "Local compliance should be built in, not bolted on.",
@@ -24,7 +24,7 @@ const BELIEFS = [
   {
     title: "Your data stays yours.",
     description:
-      "Westbridge is self-hostable and fully exportable. No lock-in, no proprietary formats. If you ever leave, you take everything with you.",
+      "Export everything at any time — invoices, contacts, payroll, inventory — in standard formats. No lock-in, no proprietary formats. Your business data always belongs to you.",
   },
 ];
 
@@ -56,7 +56,7 @@ export default function AboutContent() {
           HR, payroll, CRM, and financial reporting — without the enterprise price tag or
           the six-month implementation. We built it because we kept seeing the same problem:
           growing businesses running critical operations on spreadsheets, WhatsApp threads,
-          and four disconnected SaaS tools that never quite talked to each other.
+          and disconnected tools that never quite talked to each other.
         </p>
       </motion.div>
 
