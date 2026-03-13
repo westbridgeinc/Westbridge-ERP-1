@@ -1,4 +1,4 @@
-name: Deploy to Fly.io
+name: Deploy
 
 on:
   push:
@@ -16,6 +16,7 @@ jobs:
     environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -41,23 +42,36 @@ jobs:
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      # ── Railway deployment ──────────────────────────────────────────────────
+      - name: Install Railway CLI
+        if: env.RAILWAY_TOKEN != ''
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        if: env.RAILWAY_TOKEN != ''
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Railway — skip notice
+        if: env.RAILWAY_TOKEN == '' && env.FLY_API_TOKEN == ''
+        run: echo "::notice::Neither RAILWAY_TOKEN nor FLY_API_TOKEN configured — deployment skipped"
+
+      # ── Fly.io deployment (fallback) ────────────────────────────────────────
       - name: Setup Fly.io CLI
-        if: env.FLY_API_TOKEN != ''
+        if: env.FLY_API_TOKEN != '' && env.RAILWAY_TOKEN == ''
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly.io
-        if: env.FLY_API_TOKEN != ''
+        if: env.FLY_API_TOKEN != '' && env.RAILWAY_TOKEN == ''
         run: flyctl deploy --remote-only
 
-      - name: Skip notice
-        if: env.FLY_API_TOKEN == ''
-        run: echo "::notice::FLY_API_TOKEN not configured — deployment skipped"
-
       - name: Verify deployment
-        if: env.FLY_API_TOKEN != ''
+        if: env.RAILWAY_TOKEN != '' || env.FLY_API_TOKEN != ''
         run: |
-          sleep 10
-          STATUS=$(curl -so /dev/null -w "%{http_code}" https://westbridge-frontend.fly.dev || echo "000")
+          sleep 15
+          DEPLOY_URL="${{ vars.DEPLOY_URL || 'https://westbridge-frontend.fly.dev' }}"
+          STATUS=$(curl -so /dev/null -w "%{http_code}" "$DEPLOY_URL" || echo "000")
           echo "Frontend HTTP status: $STATUS"
           if [ "$STATUS" != "200" ] && [ "$STATUS" != "307" ]; then
             echo "::warning::Frontend returned HTTP $STATUS"

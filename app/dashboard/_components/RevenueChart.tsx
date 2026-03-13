@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 
 interface RevenuePoint {
   month: string;
@@ -17,7 +9,11 @@ interface RevenuePoint {
 
 export function RevenueChart({ data }: { data: RevenuePoint[] }) {
   return (
-    <div className="mt-8 rounded-xl border border-border bg-card p-6">
+    <div
+      className="mt-8 rounded-xl border border-border bg-card p-6"
+      role="figure"
+      aria-label="Revenue chart — last 6 months"
+    >
       <p className="font-display text-lg font-semibold text-foreground">Revenue</p>
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Last 6 months</p>
       <div className="mt-4 h-64 w-full">
@@ -30,7 +26,13 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} className="text-muted-foreground" />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12 }}
+              className="text-muted-foreground"
+            />
             <YAxis hide domain={[0, 4]} />
             <Tooltip
               formatter={(value) => [value != null ? `${Number(value)}M` : "\u2014", "Revenue"]}

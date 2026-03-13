@@ -12,6 +12,17 @@ env:
   NEXT_PUBLIC_APP_URL: http://localhost:3000
 
 jobs:
+  # ── Security audit ──────────────────────────────────────────────────────────
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
   # ── Parallel quality gates ──────────────────────────────────────────────────
   lint:
     name: Lint
