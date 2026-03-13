@@ -48,7 +48,7 @@ function SignupContent() {
       url.searchParams.set("step", String(s));
       router.replace(url.pathname + url.search, { scroll: false });
     },
-    [router]
+    [router],
   );
 
   const returnFromPayment = searchParams.get("success") === "true";
@@ -93,20 +93,21 @@ function SignupContent() {
       <nav className="border-b border-border bg-background">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href={ROUTES.home} className="flex shrink-0 items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">W</div>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+              W
+            </div>
             <span className="font-semibold text-sm tracking-wide text-foreground font-display">WESTBRIDGE</span>
           </Link>
-          <Link href={ROUTES.login} className="text-sm text-muted-foreground">Sign in</Link>
+          <Link href={ROUTES.login} className="text-sm text-muted-foreground">
+            Sign in
+          </Link>
         </div>
       </nav>
 
       <div className="mx-auto max-w-xl px-6 py-12">
         <div className="mb-8 flex justify-center gap-2">
           {[1, 2, 3, 4].map((s) => (
-            <div
-              key={s}
-              className={`h-2 w-12 rounded-full ${step >= s ? "bg-primary" : "bg-border"}`}
-            />
+            <div key={s} className={`h-2 w-12 rounded-full ${step >= s ? "bg-primary" : "bg-border"}`} />
           ))}
         </div>
 
@@ -136,25 +137,51 @@ function SignupContent() {
                   placeholder="e.g. Acme Industries Inc."
                 />
                 {step1Errors.company && (
-                  <p className="text-sm text-destructive" role="alert">{step1Errors.company}</p>
+                  <p className="text-sm text-destructive" role="alert">
+                    {step1Errors.company}
+                  </p>
                 )}
               </div>
-              <Select value={industry} onValueChange={(v) => { setIndustry(v); if (step1Errors.industry) setStep1Errors((p) => ({ ...p, industry: undefined })); }}>
-                <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+              <Select
+                value={industry}
+                onValueChange={(v) => {
+                  setIndustry(v);
+                  if (step1Errors.industry) setStep1Errors((p) => ({ ...p, industry: undefined }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
                 <SelectContent>
-                  {INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}
+                  {INDUSTRIES.map((i) => (
+                    <SelectItem key={i} value={i}>
+                      {i}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
                 <SelectContent>
-                  {CARIBBEAN_COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {CARIBBEAN_COUNTRIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={String(employees)} onValueChange={(v) => setEmployees(Number(v))}>
-                <SelectTrigger><SelectValue placeholder="Number of employees" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Number of employees" />
+                </SelectTrigger>
                 <SelectContent>
-                  {[1, 5, 10, 25, 50, 100].map((n) => <SelectItem key={n} value={String(n)}>{n === 100 ? "100+" : String(n)}</SelectItem>)}
+                  {[1, 5, 10, 25, 50, 100].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n === 100 ? "100+" : String(n)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button
@@ -173,7 +200,9 @@ function SignupContent() {
         {step === 2 && (
           <div>
             <h1 className="text-2xl font-semibold text-foreground font-display">Choose your plan</h1>
-            <p className="mt-2 text-sm text-muted-foreground/60">Flat monthly pricing. No per-user fees. Scale with overage billing.</p>
+            <p className="mt-2 text-sm text-muted-foreground/60">
+              Flat monthly pricing. No per-user fees. Scale with overage billing.
+            </p>
             <div className="mt-6 space-y-3">
               {PLANS.map((p) => (
                 <button
@@ -182,14 +211,17 @@ function SignupContent() {
                   onClick={() => setPlanId(p.id)}
                   className={cn(
                     "w-full min-h-[44px] rounded-xl border-2 p-4 text-left transition",
-                    planId === p.id ? "border-primary bg-muted" : "border-border hover:opacity-90"
+                    planId === p.id ? "border-primary bg-muted" : "border-border hover:opacity-90",
                   )}
                 >
                   <div className="flex justify-between">
                     <span className="font-semibold text-foreground">{p.name}</span>
                     <span className="text-foreground">${p.pricePerMonth.toLocaleString()}/mo</span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground/60">{p.limits.users === -1 ? "Unlimited users" : `Up to ${p.limits.users} users`} · {p.limits.storageGB === -1 ? "Unlimited storage" : `${p.limits.storageGB} GB`}</p>
+                  <p className="mt-1 text-sm text-muted-foreground/60">
+                    {p.limits.users === -1 ? "Unlimited users" : `Up to ${p.limits.users} users`} ·{" "}
+                    {p.limits.storageGB === -1 ? "Unlimited storage" : `${p.limits.storageGB} GB`}
+                  </p>
                 </button>
               ))}
             </div>
@@ -214,7 +246,9 @@ function SignupContent() {
                 if (catModules.length === 0) return null;
                 return (
                   <div key={cat} className="mb-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">{cat}</p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                      {cat}
+                    </p>
                     <div className="space-y-2">
                       {catModules.map((m) => {
                         const included = isModuleIncludedInPlan(m.id, planId);
@@ -226,7 +260,11 @@ function SignupContent() {
                             onClick={() => !included && toggleAddOn(m.id)}
                             disabled={included}
                             className={`flex min-h-[44px] w-full justify-between items-center rounded-lg border p-3 text-left text-sm transition ${
-                              included ? "cursor-default border-border bg-muted opacity-90" : isAddOn ? "border-primary bg-muted" : "border-border hover:opacity-90"
+                              included
+                                ? "cursor-default border-border bg-muted opacity-90"
+                                : isAddOn
+                                  ? "border-primary bg-muted"
+                                  : "border-border hover:opacity-90"
                             }`}
                           >
                             <span className="font-medium text-foreground">{m.name}</span>
@@ -244,8 +282,12 @@ function SignupContent() {
               })}
             </div>
             <div className="mt-6 rounded-lg border border-border bg-muted p-4">
-              <p className="text-sm font-medium text-foreground">{plan.name} — ${plan.pricePerMonth.toLocaleString()}/mo</p>
-              <p className="mt-0.5 text-xs text-muted-foreground/60">Flat monthly pricing · {addOnCount} add-on{addOnCount !== 1 ? "s" : ""} selected</p>
+              <p className="text-sm font-medium text-foreground">
+                {plan.name} — ${plan.pricePerMonth.toLocaleString()}/mo
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground/60">
+                Flat monthly pricing · {addOnCount} add-on{addOnCount !== 1 ? "s" : ""} selected
+              </p>
             </div>
             <div className="mt-6 flex gap-3">
               <Button variant="secondary" size="default" type="button" onClick={() => setStep(2)}>
@@ -264,7 +306,8 @@ function SignupContent() {
               <>
                 <h1 className="text-2xl font-semibold text-foreground font-display">Payment submitted</h1>
                 <p className="mt-2 text-muted-foreground">
-                  Your payment is being processed. We&apos;ll activate your account shortly and email you at <strong>{email || "your email"}</strong>.
+                  Your payment is being processed. We&apos;ll activate your account shortly and email you at{" "}
+                  <strong>{email || "your email"}</strong>.
                 </p>
                 <Link
                   href={ROUTES.login}
@@ -317,11 +360,14 @@ function SignupContent() {
                       const payload = data.data ?? data;
                       if (payload.paymentUrl) {
                         // Validate payment URL to prevent open redirect attacks.
-                        // Only allow HTTPS URLs on trusted 2Checkout domains.
-                        const ALLOWED_PAYMENT_HOSTS = ["secure.2checkout.com", "www.2checkout.com", "2checkout.com"];
+                        // Only allow HTTPS URLs on trusted PowerTranz domains.
+                        const ALLOWED_PAYMENT_HOSTS = ["staging.ptranz.com", "ptranz.com"];
                         try {
                           const paymentUrlObj = new URL(payload.paymentUrl);
-                          if (paymentUrlObj.protocol !== "https:" || !ALLOWED_PAYMENT_HOSTS.includes(paymentUrlObj.hostname)) {
+                          if (
+                            paymentUrlObj.protocol !== "https:" ||
+                            !ALLOWED_PAYMENT_HOSTS.includes(paymentUrlObj.hostname)
+                          ) {
                             setSignupError("Invalid payment URL received. Please contact support.");
                             return;
                           }
@@ -342,12 +388,7 @@ function SignupContent() {
                 >
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input id="signup-name" type="text" value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -366,7 +407,9 @@ function SignupContent() {
                       }}
                     />
                     {emailTouched && email.trim() && !validateEmail(email) && (
-                      <p className="text-sm text-destructive" role="alert">Enter a valid email address</p>
+                      <p className="text-sm text-destructive" role="alert">
+                        Enter a valid email address
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -377,58 +420,66 @@ function SignupContent() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
-                    {password.length > 0 && (() => {
-                      const pwResult = validatePassword(password);
-                      const passed = TOTAL_PW_REQUIREMENTS - pwResult.errors.length;
-                      return (
-                        <>
-                          <ul className="mt-2 space-y-1 text-xs">
-                            {pwResult.errors.length === 0 ? (
-                              <li className="text-success">\u2713 Password meets all requirements</li>
-                            ) : (
-                              pwResult.errors.map((e) => (
-                                <li key={e} className="text-destructive">\u2717 {e}</li>
-                              ))
-                            )}
-                          </ul>
-                          <div className="mt-2 flex gap-1">
-                            {Array.from({ length: TOTAL_PW_REQUIREMENTS }).map((_, i) => (
-                              <div
-                                key={i}
-                                className={`h-1.5 flex-1 rounded-full transition-colors ${
-                                  i < passed
-                                    ? passed === TOTAL_PW_REQUIREMENTS
-                                      ? "bg-success"
-                                      : passed >= 4
-                                        ? "bg-warning"
-                                        : "bg-destructive"
-                                    : "bg-border"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      );
-                    })()}
+                    {password.length > 0 &&
+                      (() => {
+                        const pwResult = validatePassword(password);
+                        const passed = TOTAL_PW_REQUIREMENTS - pwResult.errors.length;
+                        return (
+                          <>
+                            <ul className="mt-2 space-y-1 text-xs">
+                              {pwResult.errors.length === 0 ? (
+                                <li className="text-success">\u2713 Password meets all requirements</li>
+                              ) : (
+                                pwResult.errors.map((e) => (
+                                  <li key={e} className="text-destructive">
+                                    \u2717 {e}
+                                  </li>
+                                ))
+                              )}
+                            </ul>
+                            <div className="mt-2 flex gap-1">
+                              {Array.from({ length: TOTAL_PW_REQUIREMENTS }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                    i < passed
+                                      ? passed === TOTAL_PW_REQUIREMENTS
+                                        ? "bg-success"
+                                        : passed >= 4
+                                          ? "bg-warning"
+                                          : "bg-destructive"
+                                      : "bg-border"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        );
+                      })()}
                   </div>
                   {signupError && <p className="text-sm text-destructive">{signupError}</p>}
                   <Button
                     variant="default"
                     size="lg"
                     type="submit"
-                    disabled={
-                      submitting ||
-                      !csrfToken ||
-                      !validateEmail(email) ||
-                      !validatePassword(password).valid
-                    }
+                    disabled={submitting || !csrfToken || !validateEmail(email) || !validatePassword(password).valid}
                     className="mt-6 h-11 w-full"
                   >
-                    {!csrfToken ? "Loading\u2026" : submitting ? "Setting up your workspace\u2026" : "Continue to payment (2Checkout)"}
+                    {!csrfToken
+                      ? "Loading\u2026"
+                      : submitting
+                        ? "Setting up your workspace\u2026"
+                        : "Continue to payment"}
                   </Button>
-                  <p className="mt-2 text-center text-xs text-muted-foreground/40">You&apos;ll complete payment securely via 2Checkout. Cards and local payment methods supported.</p>
+                  <p className="mt-2 text-center text-xs text-muted-foreground/40">
+                    You&apos;ll complete payment securely via PowerTranz. Cards and Caribbean payment methods supported.
+                  </p>
                 </form>
-                <button type="button" onClick={() => setStep(3)} className="mt-4 text-sm text-muted-foreground/60 hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="mt-4 text-sm text-muted-foreground/60 hover:opacity-100"
+                >
                   Back
                 </button>
               </>
@@ -442,7 +493,13 @@ function SignupContent() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground/60">Loading&hellip;</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground/60">
+          Loading&hellip;
+        </div>
+      }
+    >
       <SignupContent />
     </Suspense>
   );

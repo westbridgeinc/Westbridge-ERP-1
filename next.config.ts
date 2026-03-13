@@ -11,9 +11,7 @@ const nextConfig: NextConfig = {
     // Next.js injects inline scripts for hydration/data. Without nonce-based CSP
     // middleware, 'unsafe-inline' is required in production. TODO: migrate to
     // nonce-based CSP via Next.js middleware for stricter script-src.
-    const scriptSrc = isProd
-      ? "script-src 'self' 'unsafe-inline'"
-      : "script-src 'self' 'unsafe-eval' 'unsafe-inline'";
+    const scriptSrc = isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'";
     // connect-src: allow self + backend API + Sentry + PostHog. Avoids blanket https:.
     const apiHost = process.env.NEXT_PUBLIC_API_URL ?? "";
     const sentryDsn = process.env.SENTRY_DSN ?? "";
@@ -22,8 +20,8 @@ const nextConfig: NextConfig = {
     if (apiHost) connectSrcParts.push(apiHost);
     if (sentryDsn) connectSrcParts.push("https://*.ingest.sentry.io");
     if (posthogHost) connectSrcParts.push(posthogHost);
-    // 2Checkout for payment processing
-    connectSrcParts.push("https://secure.2checkout.com");
+    // PowerTranz for payment processing
+    connectSrcParts.push("https://staging.ptranz.com", "https://ptranz.com");
     const cspParts = [
       "default-src 'self'",
       scriptSrc,

@@ -36,6 +36,7 @@ bash scripts/setup.sh
 ```
 
 Or manually:
+
 ```bash
 docker-compose up -d postgres redis
 npx prisma migrate deploy
@@ -59,6 +60,7 @@ npm run test:e2e      # end-to-end (requires app running)
 ## Day 2: Architecture
 
 Read these ADRs in order:
+
 1. [ADR-001: Next.js](./adr/ADR-001-nextjs-fullstack.md)
 2. [ADR-002: ERPNext](./adr/ADR-002-erpnext-backend.md)
 3. [ADR-003: Session auth](./adr/ADR-003-session-auth.md)
@@ -72,7 +74,7 @@ Key directories:
 | `app/` | Next.js pages and API routes |
 | `lib/` | Backend services, utilities |
 | `lib/services/` | Domain service layer |
-| `lib/data/` | External API clients (ERPNext, 2Checkout) |
+| `lib/data/` | External API clients (ERPNext, PowerTranz) |
 | `lib/api/` | API pipeline, versioning, OpenAPI |
 | `components/` | React components |
 | `packages/ui/` | Design tokens |

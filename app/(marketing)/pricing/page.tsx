@@ -35,27 +35,32 @@ export default function PricingPage() {
         Add-on module bundles available for Starter and Business plans. Enterprise includes all 38 modules.
       </p>
       <p className="mt-2 text-center text-sm text-muted-foreground/60">
-        Payment is processed securely via 2Checkout (Verifone) — cards and local payment methods accepted.
+        Payment is processed securely via PowerTranz — cards and Caribbean payment methods accepted.
       </p>
 
       <div className="mt-16 overflow-hidden rounded-2xl border border-border bg-background">
         <table className="w-full min-w-[600px] border-collapse text-base">
           <thead>
             <tr className="border-b border-border bg-muted">
-              <th className="py-4 pl-6 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground/60">Module</th>
-              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">Starter</th>
-              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">Business</th>
-              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">Enterprise</th>
+              <th className="py-4 pl-6 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
+                Module
+              </th>
+              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
+                Starter
+              </th>
+              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
+                Business
+              </th>
+              <th className="py-4 px-4 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
+                Enterprise
+              </th>
             </tr>
           </thead>
           <tbody>
             {MODULE_ROWS.map((row, index) => {
               const showCategory = index === 0 || row.category !== MODULE_ROWS[index - 1].category;
               return (
-                <tr
-                  key={row.moduleId}
-                  className="border-b border-border transition-colors hover:bg-muted"
-                >
+                <tr key={row.moduleId} className="border-b border-border transition-colors hover:bg-muted">
                   <td className="py-3 pl-6">
                     {showCategory && (
                       <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
