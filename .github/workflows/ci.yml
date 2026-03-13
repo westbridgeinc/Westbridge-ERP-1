@@ -47,7 +47,7 @@ jobs:
       - name: Run tests with coverage thresholds (80% statements, 70% branches)
         run: npm run test -- --coverage
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
