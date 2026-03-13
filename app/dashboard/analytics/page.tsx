@@ -547,5 +547,10 @@ export default function AnalyticsPage() {
   // Default: show the Projects list (since sidebar "Projects" links here)
   // Check if we're coming from the Projects sidebar section (no type = Projects list)
   // Analytics dashboard is accessed via the default (no sidebar link currently points to it directly)
+  // NOTE: AnalyticsDashboard component is available but not yet wired into the sidebar.
+  // To enable, route to /dashboard/analytics?type=analytics and render <AnalyticsDashboard />
   return <ProjectsListView type="project" />;
 }
+
+// Re-export for future use — currently rendered via ?type routing
+export { AnalyticsDashboard };

@@ -884,7 +884,12 @@ function SettingsContent() {
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // Delay to next tick to avoid synchronous setState within effect body.
+    // This is a hydration guard — SSR renders the skeleton, client renders the full page.
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
   if (!mounted) return <PageSkeleton />;
   return <SettingsContent />;
 }
