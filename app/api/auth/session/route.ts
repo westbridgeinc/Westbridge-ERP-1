@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const res = NextResponse.redirect(new URL(redirect, request.url));
   res.cookies.set("westbridge_sid", token, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: "/",

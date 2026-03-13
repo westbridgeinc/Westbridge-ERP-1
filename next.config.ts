@@ -14,11 +14,11 @@ const nextConfig: NextConfig = {
     const scriptSrc = isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'";
     // connect-src: allow self + backend API + Sentry + PostHog. Avoids blanket https:.
     const apiHost = process.env.NEXT_PUBLIC_API_URL ?? "";
-    const sentryDsn = process.env.SENTRY_DSN ?? "";
+    const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
     const posthogHost = process.env.POSTHOG_HOST ?? "https://app.posthog.com";
     const connectSrcParts = ["'self'"];
     if (apiHost) connectSrcParts.push(apiHost);
-    if (sentryDsn) connectSrcParts.push("https://*.ingest.sentry.io");
+    if (sentryDsn) connectSrcParts.push("https://*.ingest.sentry.io", "https://*.ingest.de.sentry.io");
     if (posthogHost) connectSrcParts.push(posthogHost);
     // PowerTranz for payment processing
     connectSrcParts.push("https://staging.ptranz.com", "https://ptranz.com");
