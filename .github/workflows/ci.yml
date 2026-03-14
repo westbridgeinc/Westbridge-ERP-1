@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
         run: npm ci
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
         run: npm ci
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
         run: npm ci
@@ -72,7 +72,7 @@ jobs:
     needs: [lint, typecheck]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
         run: npm ci
@@ -92,7 +92,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: Install dependencies
         run: npm ci
