@@ -87,7 +87,7 @@
     "tsc-files": "^1.1.4",
     "typescript": "^5",
     "vitest": "^4.0.18",
-    "wait-on": "^8.0.1"
+    "wait-on": "^9.0.4"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
