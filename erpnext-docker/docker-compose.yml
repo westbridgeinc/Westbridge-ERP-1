@@ -1,13 +1,22 @@
-# ERPNext with custom theme app (my_white_label).
-# One-command launch: docker compose up -d
-# Requires: build the custom image first (see README).
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠️  LOCAL DEVELOPMENT ONLY
+#
+# This compose file uses default credentials suitable for local development.
+# For production or staging deployments, you MUST override these values via
+# a .env file or environment variables:
+#
+#   MARIADB_ROOT_PASSWORD=<strong-random-password>
+#   ERPNEXT_ADMIN_PASSWORD=<strong-random-password>
+#
+# DO NOT deploy with the default "admin" credentials.
+# ─────────────────────────────────────────────────────────────────────────────
 
 services:
   mariadb:
     image: mariadb:10.11
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-admin}
       MYSQL_DATABASE: frappe
     volumes:
       - erpnext-mariadb-data:/var/lib/mysql
@@ -40,11 +49,11 @@ services:
     restart: unless-stopped
     environment:
       SITE_NAME: site1.local
-      ADMIN_PASSWORD: admin
+      ADMIN_PASSWORD: ${ERPNEXT_ADMIN_PASSWORD:-admin}
       DB_HOST: mariadb
       DB_PORT: "3306"
       DB_ROOT_USER: root
-      DB_ROOT_PASSWORD: admin
+      DB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-admin}
       FRAPPE_REDIS_CACHE: redis://redis:6379/0
       FRAPPE_REDIS_QUEUE: redis://redis:6379/1
       FRAPPE_REDIS_SOCKETIO: redis://redis:6379/2
@@ -67,7 +76,7 @@ services:
       DB_HOST: mariadb
       DB_PORT: "3306"
       DB_ROOT_USER: root
-      DB_ROOT_PASSWORD: admin
+      DB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-admin}
       FRAPPE_REDIS_CACHE: redis://redis:6379/0
       FRAPPE_REDIS_QUEUE: redis://redis:6379/1
       FRAPPE_REDIS_SOCKETIO: redis://redis:6379/2

@@ -60,12 +60,20 @@ export default function LoginPage() {
         setFailedAttempts((n) => n + 1);
         return;
       }
-      // If the proxy returned a session token, use navigation-based cookie setting
-      // to ensure the httpOnly cookie is stored reliably across browsers.
+      // If the proxy returned a session token, set the httpOnly cookie via POST
+      // then navigate to the dashboard.
       const sessionToken = data?.data?.sessionToken;
       if (sessionToken) {
-        window.location.href = `/api/auth/session?token=${encodeURIComponent(sessionToken)}`;
-        return;
+        const sessionRes = await fetch("/api/auth/session", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: sessionToken }),
+        });
+        if (!sessionRes.ok) {
+          setError("Failed to establish session. Please try again.");
+          return;
+        }
       }
       router.push(ROUTES.dashboard);
       router.refresh();
@@ -80,7 +88,8 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Left: brand panel — hidden on mobile */}
-      <div className="hidden min-h-screen w-[50%] flex-col items-center justify-center md:flex relative overflow-hidden"
+      <div
+        className="hidden min-h-screen w-[50%] flex-col items-center justify-center md:flex relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 250) 0%, oklch(0.25 0.18 255) 100%)" }}
       >
         {/* Decorative dot grid */}
@@ -96,19 +105,13 @@ export default function LoginPage() {
             <div className="size-10 rounded-xl bg-white/15 flex items-center justify-center">
               <span className="text-white font-bold text-lg font-display">W</span>
             </div>
-            <span className="text-white font-semibold text-xl tracking-wide font-display">
-              WESTBRIDGE
-            </span>
+            <span className="text-white font-semibold text-xl tracking-wide font-display">WESTBRIDGE</span>
           </div>
           <p className="text-white/70 text-sm leading-relaxed max-w-[280px]">
             Enterprise intelligence for growing businesses
           </p>
           <div className="mt-12 w-full max-w-[280px] space-y-3">
-            {[
-              "Multi-module ERP dashboard",
-              "Real-time financial insights",
-              "Enterprise-grade security",
-            ].map((f) => (
+            {["Multi-module ERP dashboard", "Real-time financial insights", "Enterprise-grade security"].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <div className="size-1.5 rounded-full bg-white/50 shrink-0" />
                 <span className="text-white/60 text-xs">{f}</span>
@@ -126,12 +129,8 @@ export default function LoginPage() {
             <Logo variant="mark" size="md" className="text-foreground" />
           </div>
 
-          <h1 className="font-display text-[1.75rem] font-semibold tracking-tight text-foreground">
-            Welcome back
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your Westbridge account
-          </p>
+          <h1 className="font-display text-[1.75rem] font-semibold tracking-tight text-foreground">Welcome back</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to your Westbridge account</p>
 
           {!csrfLoaded ? (
             <div className="mt-8 space-y-5" aria-busy="true">
@@ -191,16 +190,15 @@ export default function LoginPage() {
               )}
 
               <p className="text-sm text-muted-foreground">
-                <Link href="/forgot-password" className="font-medium text-foreground underline underline-offset-2 hover:no-underline">
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-foreground underline underline-offset-2 hover:no-underline"
+                >
                   Forgot your password?
                 </Link>
               </p>
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="h-11 w-full"
-              >
+              <Button type="submit" disabled={loading} className="h-11 w-full">
                 {loading ? "Signing in…" : "Sign in"}
               </Button>
             </form>
@@ -208,7 +206,10 @@ export default function LoginPage() {
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href={ROUTES.signup} className="font-medium text-foreground underline underline-offset-2 hover:no-underline">
+            <Link
+              href={ROUTES.signup}
+              className="font-medium text-foreground underline underline-offset-2 hover:no-underline"
+            >
               Get started
             </Link>
           </p>

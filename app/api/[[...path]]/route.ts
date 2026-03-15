@@ -1,17 +1,53 @@
 /**
  * Catch-all API proxy route handler.
- * Proxies all /api/* requests (that don't have their own route handler)
- * to the backend, forwarding cookies and security headers.
+ * Proxies allowed /api/* requests to the backend, forwarding cookies and security headers.
  *
- * Specific routes like /api/auth/* and /api/csrf have their own route
- * handlers that take precedence over this catch-all.
+ * Only paths matching ALLOWED_PATH_PREFIXES are forwarded. All other paths
+ * return 404 to prevent exposure of internal backend routes.
  */
 import { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:4000";
 
+/**
+ * Allowlist of API path prefixes that may be proxied to the backend.
+ * Any request whose pathname does not start with one of these is rejected.
+ */
+const ALLOWED_PATH_PREFIXES = [
+  "/api/erp/",
+  "/api/invite",
+  "/api/admin/",
+  "/api/audit/",
+  "/api/team/",
+  "/api/account/",
+  "/api/billing/",
+  "/api/ai/",
+  "/api/analytics/",
+  "/api/health/",
+  "/api/events/",
+  "/api/webhooks/",
+  "/api/reports/",
+  "/api/leads/",
+  "/api/signup",
+  "/api/modules",
+  "/api/flags",
+] as const;
+
+function isAllowedPath(pathname: string): boolean {
+  return ALLOWED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 async function proxyRequest(request: NextRequest) {
   const url = new URL(request.url);
+
+  // Reject paths not in the allowlist
+  if (!isAllowedPath(url.pathname)) {
+    return new Response(JSON.stringify({ error: { code: "NOT_FOUND", message: "Route not found" } }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const backendUrl = `${BACKEND_URL}${url.pathname}${url.search}`;
 
   const headers: Record<string, string> = {};

@@ -2,8 +2,7 @@
  * Login proxy route handler.
  * Forwards login to backend. On success, extracts the session token
  * from the Set-Cookie header and includes it in the JSON response
- * so the client can redirect to /api/auth/session?token=... to set
- * the httpOnly cookie via a navigation request.
+ * so the client can POST to /api/auth/session to set the httpOnly cookie.
  */
 import { NextRequest } from "next/server";
 
